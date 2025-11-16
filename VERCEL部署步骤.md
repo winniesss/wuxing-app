@@ -1,36 +1,39 @@
 # Vercel 部署步骤（最优方案）
 
-## ✅ 项目已构建完成！
+## ✅ 代码已推送到 GitHub！
 
-构建文件已生成在 `dist` 文件夹中。
+GitHub 仓库：`https://github.com/winniesss/wuxing-app.git`
 
-## 🚀 部署方法（选择一种）
+## 🚀 部署方法（推荐：连接 GitHub）
 
-### 方法一：网页拖拽（最简单，推荐）
+### 方法一：连接 GitHub 自动部署（推荐，最简单）
 
 1. **访问 Vercel**：
    - 打开 https://vercel.com
    - 使用 GitHub 账号登录（如果没有账号，先注册）
 
-2. **创建项目**：
+2. **导入 GitHub 仓库**：
    - 点击 "Add New..." → "Project"
-   - 如果代码在 GitHub，直接导入仓库
-   - 如果不在，点击 "Browse" 或直接拖拽
+   - 选择 "Import Git Repository"
+   - 授权 Vercel 访问你的 GitHub 账号（如果首次使用）
+   - 找到并选择 `winniesss/wuxing-app` 仓库
+   - 点击 "Import"
 
-3. **上传 dist 文件夹**：
-   - 将 `wuxing-app/dist` 文件夹拖拽到 Vercel
-   - 或者选择 "Import Git Repository" 连接 GitHub
+3. **配置项目**（通常会自动检测）：
+   - Framework Preset: **Vite**（会自动检测）
+   - Root Directory: `./`（保持默认）
+   - Build Command: `npm run build`（会自动填充）
+   - Output Directory: `dist`（会自动填充）
+   - Install Command: `npm install`（会自动填充）
 
-4. **配置项目**（如果使用GitHub）：
-   - Framework Preset: Vite
-   - Root Directory: `./` (或 `wuxing-app` 如果仓库在根目录)
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-   - Install Command: `npm install`
+4. **环境变量**（可选）：
+   - 如果需要微信登录，添加环境变量：
+     - Name: `VITE_WECHAT_APPID`
+     - Value: 你的微信 AppID
 
 5. **部署**：
    - 点击 "Deploy"
-   - 等待1-2分钟
+   - 等待1-3分钟构建完成
    - 获得链接（如 `wuxing-app.vercel.app`）
 
 ### 方法二：命令行部署（快速）
