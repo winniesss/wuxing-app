@@ -162,10 +162,8 @@ function LessonHome({ onSelectLesson, onGoToMap, currentView, onNavClick }) {
                   )}
                 </div>
                 <div className="lesson-card-content">
-                  <div className="lesson-card-title">
-                    <span className="lesson-card-level">关卡{lesson.id}</span>
-                    {lesson.title}
-                  </div>
+                  <div className="lesson-card-level">关卡{lesson.id}</div>
+                  <div className="lesson-card-title">{lesson.title}</div>
                   <div className="lesson-card-meta">
                     <span className="lesson-card-category">{lesson.description}</span>
                   </div>

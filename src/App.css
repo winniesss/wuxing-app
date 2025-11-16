@@ -903,16 +903,6 @@ body {
   align-items: flex-start; /* 文字左对齐 */
 }
 
-.lesson-card-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .lesson-card-level {
   font-size: 14px;
   font-weight: 600;
@@ -920,7 +910,16 @@ body {
   background: rgba(255, 183, 77, 0.1);
   padding: 2px 8px;
   border-radius: 4px;
-  flex-shrink: 0;
+  margin-bottom: 6px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.lesson-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
 }
 
 .lesson-card-meta {
