@@ -1,0 +1,19 @@
+请将你的 Huskie 图片文件复制到以下目录：
+
+PNG 图片 → export/png/
+- husky_happy.png
+- husky_study.png
+- husky_confused.png
+- husky_sleep.png
+- husky_dragon.png
+- husky_crystal.png
+
+SVG 图片 → export/svg/
+- husky_happy.svg
+- husky_study.svg
+- husky_confused.svg
+- husky_sleep.svg
+- husky_dragon.svg
+- husky_crystal.svg
+
+文件名必须完全匹配（小写字母+下划线）！

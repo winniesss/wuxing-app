@@ -1,0 +1,9 @@
+/* 重置默认样式，让 App.css 的样式生效 */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+}

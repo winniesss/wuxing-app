@@ -1,0 +1,39 @@
+{
+  "version": "2.0",
+  "description": "Huskie Study Assets - 五行天干地支学习小程序吉祥物资源",
+  "assets": {
+    "png": {
+      "husky_happy": "/assets/huskie-study/export/png/husky_happy.png",
+      "husky_study": "/assets/huskie-study/export/png/husky_study.png",
+      "husky_confused": "/assets/huskie-study/export/png/husky_confused.png",
+      "husky_sleep": "/assets/huskie-study/export/png/husky_sleep.png",
+      "husky_dragon": "/assets/huskie-study/export/png/husky_dragon.png",
+      "husky_crystal": "/assets/huskie-study/export/png/husky_crystal.png"
+    },
+    "svg": {
+      "husky_happy": "/assets/huskie-study/export/svg/husky_happy.svg",
+      "husky_study": "/assets/huskie-study/export/svg/husky_study.svg",
+      "husky_confused": "/assets/huskie-study/export/svg/husky_confused.svg",
+      "husky_sleep": "/assets/huskie-study/export/svg/husky_sleep.svg",
+      "husky_dragon": "/assets/huskie-study/export/svg/husky_dragon.svg",
+      "husky_crystal": "/assets/huskie-study/export/svg/husky_crystal.svg"
+    },
+    "react": {
+      "HuskyHappy": "/assets/huskie-study/export/react/HuskyHappy.jsx",
+      "HuskyStudy": "/assets/huskie-study/export/react/HuskyStudy.jsx",
+      "HuskyConfused": "/assets/huskie-study/export/react/HuskyConfused.jsx",
+      "HuskySleep": "/assets/huskie-study/export/react/HuskySleep.jsx",
+      "HuskyDragon": "/assets/huskie-study/export/react/HuskyDragon.jsx",
+      "HuskyCrystal": "/assets/huskie-study/export/react/HuskyCrystal.jsx"
+    }
+  },
+  "states": {
+    "happy": "husky_happy",
+    "study": "husky_study",
+    "confused": "husky_confused",
+    "sleep": "husky_sleep",
+    "dragon": "husky_dragon",
+    "crystal": "husky_crystal"
+  }
+}
+
