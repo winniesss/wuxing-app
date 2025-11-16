@@ -147,17 +147,6 @@ function LessonHome({ onSelectLesson, onGoToMap, currentView, onNavClick }) {
                 className={`lesson-card ${isCompleted ? 'completed' : ''}`}
                 onClick={() => onSelectLesson(lesson)}
               >
-                <div className="lesson-card-progress-text">
-                  <span className="lesson-progress-text">
-                    {currentScore} / {totalQuestions}
-                  </span>
-                </div>
-                <div className="lesson-card-content">
-                  <div className="lesson-card-title">{lesson.title}</div>
-                  <div className="lesson-card-meta">
-                    <span className="lesson-card-category">{lesson.description}</span>
-                  </div>
-                </div>
                 <div className="lesson-card-status">
                   {isCompleted ? (
                     <div className="status-check">
@@ -171,6 +160,20 @@ function LessonHome({ onSelectLesson, onGoToMap, currentView, onNavClick }) {
                       <span className="material-icons">play_arrow</span>
                     </button>
                   )}
+                </div>
+                <div className="lesson-card-content">
+                  <div className="lesson-card-title">
+                    <span className="lesson-card-level">关卡{lesson.id}</span>
+                    {lesson.title}
+                  </div>
+                  <div className="lesson-card-meta">
+                    <span className="lesson-card-category">{lesson.description}</span>
+                  </div>
+                </div>
+                <div className="lesson-card-progress-text">
+                  <span className="lesson-progress-text">
+                    {currentScore} / {totalQuestions}
+                  </span>
                 </div>
               </div>
             );

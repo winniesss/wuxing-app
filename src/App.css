@@ -883,7 +883,7 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-right: 16px;
+  margin-left: 16px;
   min-width: 50px;
 }
 
@@ -908,6 +908,19 @@ body {
   font-weight: 600;
   color: #333;
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lesson-card-level {
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFB74D;
+  background: rgba(255, 183, 77, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .lesson-card-meta {
@@ -929,7 +942,7 @@ body {
 
 .lesson-card-status {
   flex-shrink: 0;
-  margin-left: auto; /* 状态按钮自动靠右 */
+  margin-right: 16px; /* 状态按钮在左侧 */
 }
 
 .status-check {
@@ -1228,15 +1241,16 @@ body {
 }
 
 .unit-number {
-  font-size: 32px;
+  font-size: 40px;
   font-weight: 700;
   color: #FFB74D;
   line-height: 1;
+  margin-bottom: 4px;
 }
 
 .unit-lock-icon .material-icons,
 .unit-check-icon .material-icons {
-  font-size: 32px;
+  font-size: 40px;
 }
 
 .map-icon-button .material-icons {
@@ -1384,7 +1398,7 @@ body {
   gap: 20px;
   position: relative;
   width: 100%;
-  max-width: 200px;
+  max-width: 240px;
   margin: 0 auto;
 }
 
@@ -1396,8 +1410,8 @@ body {
 }
 
 .map-unit {
-  width: 160px;
-  min-height: 120px;
+  width: 200px;
+  min-height: 140px;
   border-radius: 24px;
   background: white;
   display: flex;
@@ -1409,7 +1423,7 @@ body {
   border: 3px solid white;
   transition: all 0.3s ease;
   overflow: visible;
-  padding: 8px 8px;
+  padding: 12px 10px;
   box-sizing: border-box;
 }
 
@@ -1487,17 +1501,17 @@ body {
 }
 
 .unit-title {
-  font-size: 13px;
+  font-size: 16px;
   color: #333;
   margin-top: 6px;
   text-align: center;
-  padding: 0 8px;
-  line-height: 1.4;
+  padding: 0 6px;
+  line-height: 1.5;
   max-width: 100%;
   width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  word-wrap: break-word;
+  white-space: normal;
   font-weight: 600;
   box-sizing: border-box;
 }
@@ -1523,7 +1537,7 @@ body {
 
 .map-path-line {
   width: 5px;
-  height: 70px;
+  height: 80px;
   background: #FFB74D;
   border-radius: 3px;
   opacity: 0.8;
@@ -1662,6 +1676,11 @@ body {
     font-size: 18px;
   }
 
+  .lesson-card-level {
+    font-size: 13px;
+    padding: 2px 6px;
+  }
+
   .lesson-card-category {
     font-size: 15px;
   }
@@ -1705,8 +1724,17 @@ body {
   }
 
   .map-unit {
-    width: 80px;
-    height: 80px;
+    width: 180px;
+    min-height: 130px;
+    padding: 10px 8px;
+  }
+
+  .map-path {
+    max-width: 220px;
+  }
+
+  .map-path-line {
+    height: 70px;
   }
 
   .map-unit-huskie {
@@ -1718,13 +1746,24 @@ body {
     max-height: 50px;
   }
 
+  .unit-number {
+    font-size: 36px;
+  }
+
+  .unit-lock-icon .material-icons,
+  .unit-check-icon .material-icons {
+    font-size: 36px;
+  }
+
   .unit-label {
     font-size: 10px;
   }
 
   .unit-title {
-    font-size: 9px;
-    max-width: 70px;
+    font-size: 15px;
+    max-width: 100%;
+    white-space: normal;
+    word-wrap: break-word;
   }
 
   .start-huskie-image {
