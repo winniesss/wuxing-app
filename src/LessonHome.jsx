@@ -67,11 +67,6 @@ function LessonHome({ onSelectLesson, onGoToMap, currentView, onNavClick }) {
             </defs>
             <rect x="0" y="0" width="750" height="220" fill="url(#wallGradient)"/>
             <path d="M0 180 Q375 230 750 180 L750 340 L0 340 Z" fill="url(#floorGradient)"/>
-            <line x1="375" y1="0" x2="375" y2="60" stroke="#E2D3A6" strokeWidth="4" strokeLinecap="round"/>
-            <g transform="translate(345,60)">
-              <path d="M0 18 Q30 0 60 18 Z" fill="#F4D58D"/>
-              <rect x="22" y="16" width="16" height="4" rx="2" fill="#E9C677"/>
-            </g>
             <g transform="translate(560,80)">
               <path d="M0 80 Q0 0 40 0 Q80 0 80 80 L80 160 L0 160 Z" fill="#FDF8EC" filter="url(#softShadow)"/>
               <path d="M10 82 Q10 10 40 10 Q70 10 70 82 L70 152 L10 152 Z" fill="#F5A94A"/>
@@ -152,16 +147,7 @@ function LessonHome({ onSelectLesson, onGoToMap, currentView, onNavClick }) {
                 className={`lesson-card ${isCompleted ? 'completed' : ''}`}
                 onClick={() => onSelectLesson(lesson)}
               >
-                <div className="lesson-card-icon">
-                  <span className="material-icons">menu_book</span>
-                </div>
-                <div className="lesson-card-progress-bar">
-                  <div className="lesson-progress-bg">
-                    <div 
-                      className="lesson-progress-fill" 
-                      style={{ width: `${totalQuestions > 0 ? (currentScore / totalQuestions) * 100 : 0}%` }}
-                    ></div>
-                  </div>
+                <div className="lesson-card-progress-text">
                   <span className="lesson-progress-text">
                     {currentScore} / {totalQuestions}
                   </span>

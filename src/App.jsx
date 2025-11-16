@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
+import Login from './Login';
 import LessonHome from './LessonHome';
 import LessonMap from './LessonMap';
 import Quiz from './Quiz';
@@ -7,8 +8,37 @@ import ProfilePage from './ProfilePage';
 import SettingsPage from './SettingsPage';
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
   const [currentView, setCurrentView] = useState('home'); // 'home', 'map', 'quiz'
   const [selectedLesson, setSelectedLesson] = useState(null);
+
+  useEffect(() => {
+    // 检查是否已经登录
+    const savedUser = localStorage.getItem('wuxing_user');
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        setIsLoggedIn(true);
+      } catch (e) {
+        localStorage.removeItem('wuxing_user');
+      }
+    }
+  }, []);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('wuxing_user');
+    setUser(null);
+    setIsLoggedIn(false);
+    setCurrentView('home');
+    setSelectedLesson(null);
+  };
 
   const handleSelectLesson = (lesson) => {
     setSelectedLesson(lesson);
@@ -43,6 +73,11 @@ function App() {
     }
   };
 
+  // 如果未登录，显示登录页面
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <div className="app">
       {currentView === 'quiz' && selectedLesson ? (
@@ -71,6 +106,8 @@ function App() {
         <SettingsPage
           currentView={currentView}
           onNavClick={handleNavClick}
+          user={user}
+          onLogout={handleLogout}
         />
       ) : (
         <LessonHome 

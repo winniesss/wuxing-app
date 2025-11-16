@@ -56,8 +56,8 @@ export const lessons = [
         id: 1,
         type: "single_choice",
         question: "十天干中，哪个是阳干？",
-        options: ["乙", "丁", "己", "辛"],
-        correctAnswer: "丁",
+        options: ["甲", "乙", "丁", "己"],
+        correctAnswer: "甲",
         explanation: "十天干中，甲、丙、戊、庚、壬为阳干；乙、丁、己、辛、癸为阴干。"
       },
       {

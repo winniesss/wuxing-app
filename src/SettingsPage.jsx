@@ -1,6 +1,6 @@
 import './App.css';
 
-function SettingsPage({ currentView, onNavClick }) {
+function SettingsPage({ currentView, onNavClick, user, onLogout }) {
 
   return (
     <div className="settings-container">
@@ -9,6 +9,27 @@ function SettingsPage({ currentView, onNavClick }) {
       </div>
 
       <div className="settings-content">
+        <div className="settings-section">
+          <h2 className="settings-section-title">账户</h2>
+          
+          {user && (
+            <div className="settings-item">
+              <div className="settings-item-content">
+                <span className="settings-item-label">用户名</span>
+                <span className="settings-item-desc">{user.username}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="settings-item" onClick={onLogout}>
+            <div className="settings-item-content">
+              <span className="settings-item-label" style={{ color: '#f44336' }}>退出登录</span>
+            </div>
+            <div className="settings-item-action">
+              <span className="material-icons">logout</span>
+            </div>
+          </div>
+        </div>
 
         <div className="settings-section">
           <h2 className="settings-section-title">关于</h2>
