@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { lessons } from './data';
 import { isLessonUnlocked, getLessonProgress, getProgress } from './utils/progress';
+import BadgeGallery from './components/BadgeGallery';
 import './App.css';
 
 function LessonMap({ onSelectLesson, currentView, onNavClick }) {
   const [showReview, setShowReview] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showRecords, setShowRecords] = useState(false);
+  const [viewMode, setViewMode] = useState('map'); // 'map' 或 'gallery'
 
   const getLessonStatus = (lesson) => {
     const unlocked = isLessonUnlocked(lesson.id);
@@ -89,7 +91,22 @@ function LessonMap({ onSelectLesson, currentView, onNavClick }) {
             <span className="material-icons">description</span>
           </button>
         </div>
-        <button className="review-button" onClick={handleReview}>复习</button>
+        <div className="map-view-toggle">
+          <button 
+            className={`view-toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
+            onClick={() => setViewMode('map')}
+          >
+            <span className="material-icons">map</span>
+            <span>地图</span>
+          </button>
+          <button 
+            className={`view-toggle-btn ${viewMode === 'gallery' ? 'active' : ''}`}
+            onClick={() => setViewMode('gallery')}
+          >
+            <span className="material-icons">palette</span>
+            <span>征程</span>
+          </button>
+        </div>
         <div className="map-header-right">
           <div className="user-avatar" onClick={() => onNavClick('profile')} style={{ cursor: 'pointer' }}>
             <span className="material-icons">person</span>
@@ -97,8 +114,11 @@ function LessonMap({ onSelectLesson, currentView, onNavClick }) {
         </div>
       </div>
 
-      <div className="map-content">
-        <div className="map-path">
+      {viewMode === 'gallery' ? (
+        <BadgeGallery />
+      ) : (
+        <div className="map-content">
+          <div className="map-path">
           {lessons.map((lesson, index) => {
             const { status, progress } = getLessonStatus(lesson);
             const isLast = index === lessons.length - 1;
@@ -148,7 +168,8 @@ function LessonMap({ onSelectLesson, currentView, onNavClick }) {
             </button>
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       {/* 复习弹窗 */}
       {showReview && (
@@ -251,11 +272,17 @@ function LessonMap({ onSelectLesson, currentView, onNavClick }) {
         >
           <span className="material-icons">map</span>
         </div>
-        <div className="nav-item" onClick={() => onNavClick('profile')}>
+        <div 
+          className={`nav-item ${currentView === 'profile' ? 'active' : ''}`}
+          onClick={() => onNavClick('profile')}
+        >
           <span className="material-icons">person</span>
         </div>
-        <div className="nav-item" onClick={() => onNavClick('settings')}>
-          <span className="material-icons">settings</span>
+        <div 
+          className={`nav-item ${currentView === 'chat' ? 'active' : ''}`}
+          onClick={() => onNavClick('chat')}
+        >
+          <span className="material-icons">chat</span>
         </div>
       </div>
     </div>

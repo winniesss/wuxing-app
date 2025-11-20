@@ -193,11 +193,17 @@ function LessonHome({ onSelectLesson, onGoToMap, currentView, onNavClick }) {
         >
           <span className="material-icons">map</span>
         </div>
-        <div className="nav-item" onClick={() => onNavClick('profile')}>
+        <div 
+          className={`nav-item ${currentView === 'profile' ? 'active' : ''}`}
+          onClick={() => onNavClick('profile')}
+        >
           <span className="material-icons">person</span>
         </div>
-        <div className="nav-item" onClick={() => onNavClick('settings')}>
-          <span className="material-icons">settings</span>
+        <div 
+          className={`nav-item ${currentView === 'chat' ? 'active' : ''}`}
+          onClick={() => onNavClick('chat')}
+        >
+          <span className="material-icons">chat</span>
         </div>
       </div>
     </div>

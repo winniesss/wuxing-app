@@ -1,17 +1,26 @@
-import { useState, useEffect } from 'react';
-import './App.css';
+import { useState, useEffect, useRef } from 'react';
+import './index.css';
 import Login from './Login';
-import LessonHome from './LessonHome';
-import LessonMap from './LessonMap';
 import Quiz from './Quiz';
-import ProfilePage from './ProfilePage';
+import ChatPage from './components/ChatPage';
 import SettingsPage from './SettingsPage';
+import { 
+  Play, CheckCircle2, BookOpen, User, MessageSquare, Home, 
+  ChevronRight, Calendar, Trophy, MoreHorizontal, Map as MapIcon, 
+  Award, Lock, Send, RefreshCw, Settings, Bell, Shield
+} from 'lucide-react';
+import { lessons } from './data';
+import { getLessonProgress, getOverallProgress, isLessonUnlocked } from './utils/progress';
+import { getBadgeIdByLessonId, getBadgeConfig, isBadgeUnlocked } from './utils/badges';
+import { getUserBaziProfile } from './utils/bazi/storage';
+import { generateDailyTip, getTodayGanZhi } from './utils/bazi/dailyTip';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [currentView, setCurrentView] = useState('home'); // 'home', 'map', 'quiz'
+  const [activeTab, setActiveTab] = useState('home');
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [subTab, setSubTab] = useState('map'); // for learn view
 
   useEffect(() => {
     // 检查是否已经登录
@@ -36,41 +45,18 @@ function App() {
     localStorage.removeItem('wuxing_user');
     setUser(null);
     setIsLoggedIn(false);
-    setCurrentView('home');
+    setActiveTab('home');
     setSelectedLesson(null);
   };
 
   const handleSelectLesson = (lesson) => {
     setSelectedLesson(lesson);
-    setCurrentView('quiz');
+    setActiveTab('quiz');
   };
 
   const handleBackToHome = () => {
     setSelectedLesson(null);
-    setCurrentView('home');
-  };
-
-  const handleGoToMap = () => {
-    setCurrentView('map');
-  };
-
-  const handleBackFromMap = () => {
-    setCurrentView('home');
-  };
-
-  const handleNavClick = (view) => {
-    if (view === 'home') {
-      setCurrentView('home');
-      setSelectedLesson(null);
-    } else if (view === 'map') {
-      setCurrentView('map');
-    } else if (view === 'profile') {
-      setCurrentView('profile');
-      setSelectedLesson(null);
-    } else if (view === 'settings') {
-      setCurrentView('settings');
-      setSelectedLesson(null);
-    }
+    setActiveTab('home');
   };
 
   // 如果未登录，显示登录页面
@@ -78,45 +64,473 @@ function App() {
     return <Login onLogin={handleLogin} />;
   }
 
-  return (
-    <div className="app">
-      {currentView === 'quiz' && selectedLesson ? (
-        <Quiz
-          lesson={selectedLesson}
-          onBackToList={handleBackToHome}
-          currentView={currentView}
-          onNavClick={handleNavClick}
-          onRestart={() => {
-            // Quiz 组件内部会处理重启逻辑
+  // 如果选择了课程，显示 Quiz 页面
+  if (activeTab === 'quiz' && selectedLesson) {
+    return (
+      <Quiz
+        lesson={selectedLesson}
+        onBackToList={handleBackToHome}
+        currentView={activeTab}
+        onNavClick={(view) => {
+          if (view === 'home') {
+            setActiveTab('home');
+            setSelectedLesson(null);
+          } else {
+            setActiveTab(view);
+            setSelectedLesson(null);
+          }
+        }}
+        onRestart={() => {}}
+      />
+    );
+  }
+
+  // 获取用户数据
+  const overallProgress = getOverallProgress(lessons.length);
+  const userBazi = getUserBaziProfile();
+  const dailyTip = userBazi ? generateDailyTip(new Date(), userBazi) : null;
+  const todayGanZhi = getTodayGanZhi();
+
+  // 获取课程列表数据
+  const unlockedLessons = lessons.filter(lesson => isLessonUnlocked(lesson.id));
+  const courseList = lessons.map(lesson => {
+    const progress = getLessonProgress(lesson.id);
+    const totalQuestions = lesson.questions.length;
+    const isCompleted = progress.completed && 
+                       progress.totalQuestions > 0 && 
+                       progress.score > 0 &&
+                       progress.score === progress.totalQuestions &&
+                       progress.totalQuestions === totalQuestions;
+    
+    let status = 'locked';
+    if (isCompleted) {
+      status = 'completed';
+    } else if (isLessonUnlocked(lesson.id)) {
+      status = 'current';
+    }
+
+    const colors = [
+      { color: "bg-blue-500", lightColor: "bg-blue-50 text-blue-600" },
+      { color: "bg-indigo-500", lightColor: "bg-indigo-50 text-indigo-600" },
+      { color: "bg-emerald-500", lightColor: "bg-emerald-50 text-emerald-600" },
+      { color: "bg-purple-500", lightColor: "bg-purple-50 text-purple-600" },
+      { color: "bg-pink-500", lightColor: "bg-pink-50 text-pink-600" },
+      { color: "bg-orange-500", lightColor: "bg-orange-50 text-orange-600" },
+    ];
+
+    return {
+      id: lesson.id,
+      level: `关卡 ${lesson.id}`,
+      title: lesson.title,
+      subtitle: lesson.description,
+      progress: progress.score || 0,
+      total: totalQuestions,
+      ...colors[(lesson.id - 1) % colors.length],
+      status,
+      lesson: lesson
+    };
+  });
+
+  // 动态头部标题
+  const getHeaderContent = () => {
+    switch(activeTab) {
+      case 'home': return { title: '学习进度', showStats: true };
+      case 'learn': return { title: '修行之路', showStats: false };
+      case 'chat': return { title: '修行聊天', showStats: false };
+      case 'profile': return { title: '个人中心', showStats: false };
+      default: return { title: 'App', showStats: true };
+    }
+  };
+
+  const headerData = getHeaderContent();
+
+  // 首页组件
+  const HomeView = () => {
+    // 过滤出未完成的课程（排除已完成的）
+    const incompleteCourses = courseList.filter(course => course.status !== 'completed');
+    
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-slate-900">今日课程</h3>
+          <button 
+            onClick={() => setActiveTab('learn')}
+            className="text-sm text-slate-600 font-medium active:text-slate-900 active:bg-slate-100 border border-slate-300 px-4 py-2 rounded-lg transition-all touch-manipulation"
+          >
+            查看全部
+          </button>
+        </div>
+        {incompleteCourses.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-4xl mb-4">🎉</div>
+            <p className="text-slate-600 text-lg font-medium">恭喜！所有课程已完成</p>
+            <p className="text-slate-400 text-sm mt-2">可以前往"学习"页面查看全部课程</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {incompleteCourses.map((course) => (
+          <div 
+            key={course.id} 
+            className={`group bg-white border border-slate-200 rounded-lg p-4 transition-all touch-manipulation ${
+              course.status !== 'locked' 
+                ? 'cursor-pointer active:bg-slate-50 active:border-teal-300 active:scale-[0.98]' 
+                : 'cursor-not-allowed opacity-75'
+            }`}
+            onClick={() => course.status !== 'locked' && handleSelectLesson(course.lesson)}
+          >
+            <div className="flex items-start justify-between mb-2">
+              <span className="text-xs font-medium text-slate-600">
+                {course.level} {course.progress}/{course.total} 节
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              {course.status !== 'locked' ? (
+                <Play size={20} className="text-slate-900 shrink-0" fill="currentColor" />
+              ) : (
+                <Play size={20} className="text-slate-400 shrink-0" fill="currentColor" />
+              )}
+              <div className="flex-1">
+                <h4 className="font-semibold text-slate-900 text-base mb-1">{course.title}</h4>
+                <div className="flex items-center gap-2">
+                  <p className="text-slate-600 text-sm">{course.subtitle}</p>
+                  {course.status === 'locked' && (
+                    <Lock size={14} className="text-slate-400 shrink-0" />
+                  )}
+                </div>
+              </div>
+              {course.status !== 'locked' && (
+                <ChevronRight size={20} className="text-slate-400 group-hover:text-slate-600 shrink-0" />
+              )}
+            </div>
+          </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 学习地图/征程组件
+  const LearnView = () => {
+    return (
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* 顶部切换 */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white p-1 rounded-full shadow-sm border border-slate-100 inline-flex">
+            <button 
+              onClick={() => setSubTab('map')}
+              className={`flex items-center px-6 py-2.5 rounded-full text-sm font-medium transition-all touch-manipulation min-h-[44px] ${
+                subTab === 'map' 
+                  ? 'bg-teal-500 text-white shadow-md active:bg-teal-600' 
+                  : 'text-slate-500 active:bg-slate-100'
+              }`}
+            >
+              <MapIcon size={16} className="mr-2" /> 地图
+            </button>
+            <button 
+              onClick={() => setSubTab('badges')}
+              className={`flex items-center px-6 py-2.5 rounded-full text-sm font-medium transition-all touch-manipulation min-h-[44px] ${
+                subTab === 'badges' 
+                  ? 'bg-amber-500 text-white shadow-md active:bg-amber-600' 
+                  : 'text-slate-500 active:bg-slate-100'
+              }`}
+            >
+              <Award size={16} className="mr-2" /> 征程
+            </button>
+          </div>
+        </div>
+
+        {subTab === 'map' ? (
+          <div className="relative max-w-xs mx-auto">
+            {/* 连接线 */}
+            <div className="absolute left-1/2 top-8 bottom-8 w-1 bg-slate-200 -translate-x-1/2 rounded-full z-0"></div>
+            
+            <div className="space-y-12 relative z-10">
+              {courseList.map((node, index) => (
+                <div key={node.id} className="flex flex-col items-center">
+                  <div 
+                    className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg border-4 border-white transition-transform touch-manipulation ${
+                      node.status === 'completed' 
+                        ? 'bg-teal-500 text-white active:scale-95 active:bg-teal-600' 
+                        : node.status === 'current' 
+                        ? 'bg-white text-teal-600 ring-4 ring-teal-100 active:scale-95 active:ring-teal-200' 
+                        : 'bg-slate-100 text-slate-300'
+                    } ${node.status !== 'locked' ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                    onClick={() => node.status !== 'locked' && handleSelectLesson(node.lesson)}
+                  >
+                    <span className="text-2xl font-bold">{index + 1}</span>
+                  </div>
+                  <div className="mt-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 text-center w-48">
+                    <h4 className="font-bold text-sm text-slate-800">{node.title}</h4>
+                    {node.status === 'locked' && <Lock size={12} className="inline-block mt-1 text-slate-400" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 px-4">
+            {/* 征程/徽章网格 - 使用实际数据 */}
+            {courseList.map((course, index) => {
+              const isCompleted = course.status === 'completed';
+              const badgeId = getBadgeIdByLessonId(course.id);
+              const badgeConfig = badgeId ? getBadgeConfig(badgeId) : null;
+              const isBadgeUnlockedState = badgeId ? isBadgeUnlocked(badgeId) : false;
+              
+              return (
+                <div 
+                  key={course.id} 
+                  className={`aspect-[4/5] rounded-2xl border-2 flex flex-col items-center justify-center p-4 transition-all relative overflow-hidden ${
+                    isBadgeUnlockedState 
+                      ? 'border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 shadow-lg' 
+                      : 'border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-slate-100'
+                  }`}
+                >
+                  {/* 徽章图片 */}
+                  {badgeConfig ? (
+                    <div className="w-20 h-20 mb-3 flex items-center justify-center">
+                      <img
+                        src={badgeConfig.svgPath}
+                        alt={badgeConfig.name}
+                        className={`w-full h-full object-contain transition-all ${
+                          isBadgeUnlockedState 
+                            ? 'opacity-100 drop-shadow-md' 
+                            : 'opacity-50 grayscale brightness-75'
+                        }`}
+                        style={!isBadgeUnlockedState ? {
+                          filter: 'grayscale(100%) brightness(0.6)'
+                        } : {}}
+                        onError={(e) => {
+                          e.target.src = badgeConfig.pngPath;
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className={`w-16 h-16 rounded-full mb-4 flex items-center justify-center ${
+                      isCompleted ? 'bg-amber-200 text-amber-600' : 'bg-slate-200 text-slate-400'
+                    }`}>
+                      {isCompleted ? <Award size={32} /> : <Lock size={24} />}
+                    </div>
+                  )}
+                  <span className={`text-sm font-bold text-center ${isBadgeUnlockedState ? 'text-amber-800' : 'text-slate-500'}`}>
+                    {badgeConfig ? badgeConfig.name : course.title}
+                  </span>
+                  <span className={`text-xs mt-1 ${isBadgeUnlockedState ? 'text-amber-600' : 'text-slate-400'}`}>
+                    {isBadgeUnlockedState ? '✓ 已获得' : '🔒 待解锁'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 个人中心组件
+  const ProfileView = () => (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* 头部卡片 */}
+      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center relative overflow-hidden">
+        <div className="w-24 h-24 bg-blue-50 rounded-full mx-auto flex items-center justify-center text-4xl mb-4 relative z-10">
+          {user?.username ? user.username.charAt(0).toUpperCase() : '🧘'}
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">{user?.username || '修行者'}</h2>
+        <p className="text-slate-400 text-sm mt-1">继续加油学习！</p>
+        
+        {/* 装饰背景 */}
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-slate-50 to-transparent -z-0" />
+      </div>
+
+      {/* 统计数据 */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 flex flex-col justify-center items-center shadow-sm">
+          <div className="bg-green-100 p-2 rounded-full text-green-600 mb-2">
+            <CheckCircle2 size={20} />
+          </div>
+          <span className="text-2xl font-bold text-slate-800">{overallProgress.completed}</span>
+          <span className="text-xs text-slate-400 mt-1">已完成关卡</span>
+        </div>
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 flex flex-col justify-center items-center shadow-sm">
+          <div className="bg-emerald-100 p-2 rounded-full text-emerald-600 mb-2">
+            <Trophy size={20} />
+          </div>
+          <span className="text-2xl font-bold text-slate-800">{Math.round(overallProgress.percentage)}%</span>
+          <span className="text-xs text-slate-400 mt-1">总体进度</span>
+        </div>
+      </div>
+
+      {/* 设置菜单 */}
+      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <MenuItem 
+          icon={<RefreshCw size={18} />} 
+          label="重置进度" 
+          danger 
+          onClick={() => {
+            if (confirm('确定要重置所有进度吗？')) {
+              localStorage.removeItem('wuxing_progress');
+              window.location.reload();
+            }
           }}
         />
-      ) : currentView === 'map' ? (
-        <LessonMap 
-          onSelectLesson={handleSelectLesson}
-          onBack={handleBackFromMap}
-          currentView={currentView}
-          onNavClick={handleNavClick}
+        <div className="h-px bg-slate-50" />
+        <MenuItem 
+          icon={<Bell size={18} />} 
+          label="提醒设置" 
+          onClick={() => setActiveTab('settings')}
         />
-      ) : currentView === 'profile' ? (
-        <ProfilePage
-          currentView={currentView}
-          onNavClick={handleNavClick}
+        <div className="h-px bg-slate-50" />
+        <MenuItem icon={<Shield size={18} />} label="隐私政策" />
+        <div className="h-px bg-slate-50" />
+        <MenuItem 
+          icon={<Settings size={18} />} 
+          label="更多设置" 
+          onClick={() => setActiveTab('settings')}
         />
-      ) : currentView === 'settings' ? (
-        <SettingsPage
-          currentView={currentView}
-          onNavClick={handleNavClick}
-          user={user}
-          onLogout={handleLogout}
-        />
-      ) : (
-        <LessonHome 
-          onSelectLesson={handleSelectLesson}
-          onGoToMap={handleGoToMap}
-          currentView={currentView}
-          onNavClick={handleNavClick}
-        />
-      )}
+      </div>
+    </div>
+  );
+
+  const MenuItem = ({ icon, label, danger, onClick }) => (
+    <button 
+      onClick={onClick}
+      className="w-full flex items-center justify-between p-4 active:bg-slate-50 transition-colors text-left touch-manipulation min-h-[44px]"
+    >
+      <div className={`flex items-center gap-3 ${danger ? 'text-red-500' : 'text-slate-600'}`}>
+        {icon}
+        <span className="font-medium text-sm">{label}</span>
+      </div>
+      <ChevronRight size={16} className="text-slate-300" />
+    </button>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 relative overflow-hidden mx-auto max-w-md" style={{ width: '100%', maxWidth: '428px' }}>
+      <div className="flex flex-col h-screen">
+        {/* --- 主内容区域 --- */}
+        <div className="flex-1 overflow-y-auto pb-20" style={{ paddingBottom: '80px' }}>
+          {/* --- 头部区域 --- */}
+          {activeTab !== 'chat' && (
+            <header className="bg-white border-b border-slate-200 px-6 pt-4 pb-6">
+              {activeTab === 'home' && (
+                <div className="space-y-3">
+                  <h1 className="text-2xl font-bold text-slate-900">学习进度</h1>
+                  <div className="flex items-center gap-4 text-sm text-slate-600">
+                    <span>{overallProgress.completed} / {lessons.length} 关卡</span>
+                    <span className="flex items-center gap-1">
+                      {unlockedLessons.filter(lesson => {
+                        const progress = getLessonProgress(lesson.id);
+                        return !progress.completed;
+                      }).length} 个课程待学习
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {activeTab !== 'home' && (
+                <h1 className="text-2xl font-bold text-slate-900">{headerData.title}</h1>
+              )}
+            </header>
+          )}
+
+          {/* --- 内容渲染区域 --- */}
+          <main className={activeTab === 'chat' ? '' : 'px-6 py-6'}>
+            {activeTab === 'home' && <HomeView />}
+            {activeTab === 'learn' && <LearnView />}
+            {activeTab === 'chat' && (
+              <ChatPage 
+                currentView={activeTab} 
+                onNavClick={(view) => {
+                  setActiveTab(view);
+                  setSelectedLesson(null);
+                }} 
+              />
+            )}
+            {activeTab === 'profile' && <ProfileView />}
+            {activeTab === 'settings' && (
+              <SettingsPage
+                currentView={activeTab}
+                onNavClick={(view) => {
+                  setActiveTab(view);
+                  setSelectedLesson(null);
+                }}
+                user={user}
+                onLogout={handleLogout}
+              />
+            )}
+          </main>
+        </div>
+
+        {/* --- 底部导航栏（移动端模式）--- */}
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 mx-auto max-w-md shadow-lg" style={{ maxWidth: '428px' }}>
+          <div className="flex justify-around items-center h-16">
+            <button 
+              onClick={() => {
+                setActiveTab('home');
+                setSelectedLesson(null);
+              }}
+              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors touch-manipulation active:bg-slate-50 ${
+                activeTab === 'home' ? 'text-teal-600' : 'text-slate-400'
+              }`}
+            >
+              <Home size={22} />
+              <span className="text-[10px] mt-0.5 font-medium">首页</span>
+            </button>
+            <button 
+              onClick={() => {
+                setActiveTab('learn');
+                setSelectedLesson(null);
+              }}
+              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors touch-manipulation active:bg-slate-50 ${
+                activeTab === 'learn' ? 'text-teal-600' : 'text-slate-400'
+              }`}
+            >
+              <BookOpen size={22} />
+              <span className="text-[10px] mt-0.5 font-medium">学习</span>
+            </button>
+            <button 
+              onClick={() => {
+                const nextLesson = unlockedLessons.find(lesson => {
+                  const progress = getLessonProgress(lesson.id);
+                  return !progress.completed;
+                }) || unlockedLessons[0];
+                if (nextLesson) {
+                  handleSelectLesson(nextLesson);
+                }
+              }}
+              className="flex flex-col items-center justify-center flex-1 h-full text-teal-600 touch-manipulation active:opacity-80"
+            >
+              <div className="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center -mt-4 shadow-lg active:scale-95 transition-transform">
+                <Play size={24} fill="white" className="text-white ml-0.5" />
+              </div>
+            </button>
+            <button 
+              onClick={() => {
+                setActiveTab('chat');
+                setSelectedLesson(null);
+              }}
+              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors touch-manipulation active:bg-slate-50 ${
+                activeTab === 'chat' ? 'text-teal-600' : 'text-slate-400'
+              }`}
+            >
+              <MessageSquare size={22} />
+              <span className="text-[10px] mt-0.5 font-medium">聊天</span>
+            </button>
+            <button 
+              onClick={() => {
+                setActiveTab('profile');
+                setSelectedLesson(null);
+              }}
+              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors touch-manipulation active:bg-slate-50 ${
+                activeTab === 'profile' ? 'text-teal-600' : 'text-slate-400'
+              }`}
+            >
+              <User size={22} />
+              <span className="text-[10px] mt-0.5 font-medium">我的</span>
+            </button>
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }

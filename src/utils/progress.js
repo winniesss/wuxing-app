@@ -35,6 +35,8 @@ export const getLessonProgress = (lessonId) => {
 // 更新关卡进度
 export const updateLessonProgress = (lessonId, score, totalQuestions) => {
   const progress = getProgress();
+  const wasCompleted = progress[lessonId]?.completed || false;
+  
   progress[lessonId] = {
     completed: true,
     score,
@@ -42,6 +44,17 @@ export const updateLessonProgress = (lessonId, score, totalQuestions) => {
     completedAt: Date.now()
   };
   saveProgress(progress);
+  
+  // 如果课程刚刚完成（之前未完成），解锁对应的徽章
+  if (!wasCompleted && score === totalQuestions && totalQuestions > 0) {
+    // 动态导入徽章工具，避免循环依赖
+    import('./badges.js').then(({ unlockBadge, getBadgeIdByLessonId }) => {
+      const badgeId = getBadgeIdByLessonId(lessonId);
+      if (badgeId) {
+        unlockBadge(badgeId);
+      }
+    });
+  }
 };
 
 // 检查关卡是否已解锁

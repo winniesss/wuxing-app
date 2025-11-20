@@ -1,0 +1,57 @@
+<svg width="260" height="340" viewBox="0 0 260 340" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <linearGradient id="woodScrollPaper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FDF6E8"/>
+      <stop offset="100%" stop-color="#F5E6C9"/>
+    </linearGradient>
+    <linearGradient id="woodMain" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#52B788"/>
+      <stop offset="100%" stop-color="#2D9C6A"/>
+    </linearGradient>
+    <linearGradient id="woodSide" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8D6B4A"/>
+      <stop offset="100%" stop-color="#A97C50"/>
+    </linearGradient>
+    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- 顶部挂绳 + 圆钮 -->
+  <g transform="translate(130,25)">
+    <line x1="-55" y1="0" x2="55" y2="0" stroke="#C9B28A" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="0" cy="-16" r="10" fill="#F3D59D" stroke="#D9B673" stroke-width="2"/>
+    <line x1="0" y1="-6" x2="0" y2="0" stroke="#C9B28A" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- 卷轴主体 -->
+  <g filter="url(#badgeShadow)" transform="translate(30,45)">
+    <!-- 左右卷轴杆 -->
+    <rect x="0" y="25" width="14" height="210" rx="7" fill="url(#woodSide)"/>
+    <rect x="186" y="25" width="14" height="210" rx="7" fill="url(#woodSide)"/>
+    <!-- 纸张 -->
+    <rect x="10" y="20" width="180" height="220" rx="18" fill="url(#woodScrollPaper)"/>
+
+    <!-- 中央"木行"意象：树 + 年轮 -->
+    <!-- 草地 -->
+    <ellipse cx="100" cy="190" rx="60" ry="18" fill="#C8E6C9"/>
+    <!-- 树干 -->
+    <path d="M92 140 L92 182 Q92 188 100 188 Q108 188 108 182 L108 140 Z"
+          fill="#8D6B4A"/>
+    <!-- 树冠 -->
+    <circle cx="84" cy="138" r="24" fill="#52B788"/>
+    <circle cx="112" cy="138" r="22" fill="#52B788"/>
+    <circle cx="98" cy="122" r="26" fill="#63C196"/>
+    <!-- 年轮圆盘 -->
+    <circle cx="150" cy="90" r="26" fill="#E6D3A4" stroke="#C9B28A" stroke-width="3"/>
+    <circle cx="150" cy="90" r="16" fill="#F3E2B9" stroke="#C9B28A" stroke-width="2"/>
+    <path d="M150 74 Q140 80 142 90 Q144 100 136 104"
+          fill="none" stroke="#C19A66" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- 纸张上下装饰线 -->
+    <line x1="20" y1="40" x2="180" y2="40" stroke="#E3D1B0" stroke-width="2" stroke-linecap="round"/>
+    <line x1="20" y1="210" x2="180" y2="210" stroke="#E3D1B0" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>
+

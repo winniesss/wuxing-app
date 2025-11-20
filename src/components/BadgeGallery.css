@@ -1,0 +1,199 @@
+/* 徽章征程样式 */
+.badge-gallery {
+  padding: 20px;
+  background: #FFF9E6;
+  min-height: 100vh;
+  padding-bottom: 100px;
+}
+
+.badge-gallery-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.badge-gallery-title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.badge-gallery-subtitle {
+  font-size: 16px;
+  color: #666;
+}
+
+.badge-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+.badge-frame {
+  aspect-ratio: 3 / 4;
+  position: relative;
+}
+
+.badge-slot {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
+  border: 3px solid #D4D4D4;
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.badge-slot.unlocked {
+  background: linear-gradient(135deg, #FFFBF0 0%, #FFF5E6 100%);
+  border-color: #FFB74D;
+  box-shadow: 0 6px 16px rgba(255, 183, 77, 0.3);
+}
+
+.badge-slot.locked {
+  opacity: 0.6;
+}
+
+.badge-slot.empty {
+  background: transparent;
+  border: 2px dashed #D4D4D4;
+  box-shadow: none;
+}
+
+.badge-content {
+  position: relative;
+  width: 80%;
+  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.badge-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  animation: badgeAppear 0.5s ease-out;
+}
+
+@keyframes badgeAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.badge-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(255, 183, 77, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: 1;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+.badge-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #999;
+}
+
+.badge-placeholder .material-icons {
+  font-size: 32px;
+  opacity: 0.5;
+}
+
+.badge-placeholder-text {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-placeholder.empty-placeholder .material-icons {
+  font-size: 24px;
+  opacity: 0.3;
+}
+
+/* 挂轴装饰 */
+.badge-scroll-top,
+.badge-scroll-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(90deg, #8B7355 0%, #A0826D 50%, #8B7355 100%);
+  z-index: 3;
+}
+
+.badge-scroll-top {
+  top: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.badge-scroll-bottom {
+  bottom: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+.badge-slot.unlocked .badge-scroll-top,
+.badge-slot.unlocked .badge-scroll-bottom {
+  background: linear-gradient(90deg, #D4A574 0%, #E8B88A 50%, #D4A574 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .badge-gallery {
+    padding: 16px;
+  }
+
+  .badge-gallery-title {
+    font-size: 24px;
+  }
+
+  .badge-gallery-subtitle {
+    font-size: 14px;
+  }
+
+  .badge-gallery-grid {
+    gap: 12px;
+    padding: 0 5px;
+  }
+
+  .badge-image {
+    width: 90%;
+    height: 90%;
+  }
+}
+

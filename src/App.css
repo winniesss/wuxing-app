@@ -603,6 +603,16 @@ body {
   background: #FFF9E6;
   min-height: 100vh;
   padding-bottom: 80px;
+  animation: pageFadeIn 0.6s ease-out;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* 顶部场景区域 */
@@ -629,6 +639,57 @@ body {
   width: 100%;
   height: 100%;
   display: block;
+  animation: sceneFadeIn 0.8s ease-out;
+}
+
+@keyframes sceneFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* SVG 元素动画 */
+.scene-svg g {
+  animation: svgElementFadeIn 1s ease-out forwards;
+  opacity: 0;
+}
+
+.scene-svg g:nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.scene-svg g:nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+@keyframes svgElementFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 窗户闪烁动画 */
+@keyframes windowShine {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.scene-svg circle[fill="#FFFFFF"] {
+  animation: windowShine 3s ease-in-out infinite;
 }
 
 .scene-background-old {
@@ -721,6 +782,23 @@ body {
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  animation: characterFloat 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes characterFloat {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-8px) translateX(2px);
+  }
+  50% {
+    transform: translateY(-12px) translateX(0px);
+  }
+  75% {
+    transform: translateY(-8px) translateX(-2px);
+  }
 }
 
 /* 进度和目标摘要 */
@@ -744,6 +822,16 @@ body {
 .progress-icon {
   color: #FFD54F;
   font-size: 24px;
+  animation: iconBounce 2s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 .progress-label {
@@ -774,9 +862,42 @@ body {
 
 .progress-bar-fill {
   height: 100%;
-  background: #FFD54F;
+  background: linear-gradient(90deg, #FFD54F 0%, #FFC107 50%, #FFD54F 100%);
+  background-size: 200% 100%;
   border-radius: 4px;
-  transition: width 0.3s ease;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: progressShine 2s linear infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: progressShimmer 2s infinite;
+}
+
+@keyframes progressShine {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+@keyframes progressShimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 .progress-text {
@@ -802,6 +923,19 @@ body {
 .goals-icon {
   color: white;
   font-size: 24px;
+  animation: iconRotate 3s ease-in-out infinite;
+}
+
+@keyframes iconRotate {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
 }
 
 .goals-text {
@@ -840,16 +974,57 @@ body {
   align-items: center;
   gap: 0; /* 移除gap，使用margin控制间距 */
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 2px solid transparent;
   flex-direction: row; /* 明确横向排列：图标-文字-状态按钮 */
+  opacity: 0;
+  animation: cardSlideIn 0.5s ease-out forwards;
+}
+
+.lesson-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.lesson-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.lesson-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.lesson-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.lesson-card:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.lesson-card:nth-child(n+6) {
+  animation-delay: 0.6s;
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .lesson-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(255, 183, 77, 0.3);
   border-color: #FFD54F;
+}
+
+.lesson-card:active {
+  transform: translateY(-2px) scale(1.01);
 }
 
 .lesson-card.completed {
@@ -952,6 +1127,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: checkPulse 2s ease-in-out infinite;
+}
+
+@keyframes checkPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(102, 187, 106, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(102, 187, 106, 0);
+  }
 }
 
 .status-check .material-icons {
@@ -969,12 +1154,37 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.status-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.status-button:hover::before {
+  width: 100%;
+  height: 100%;
 }
 
 .status-button:hover {
   background: #1976D2;
-  transform: scale(1.1);
+  transform: scale(1.15) rotate(5deg);
+  box-shadow: 0 4px 12px rgba(66, 165, 245, 0.4);
+}
+
+.status-button:active {
+  transform: scale(1.05) rotate(0deg);
 }
 
 .status-button .material-icons {
@@ -1154,17 +1364,32 @@ body {
   align-items: center;
   padding: 12px 0;
   z-index: 100;
+  animation: navSlideUp 0.5s ease-out 0.3s both;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes navSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .nav-item {
   font-size: 24px;
   cursor: pointer;
   padding: 8px;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0.5;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  border-radius: 12px;
 }
 
 .nav-item span {
@@ -1187,10 +1412,28 @@ body {
   height: 6px;
   background: #66BB6A;
   border-radius: 50%;
+  animation: navDotPulse 2s ease-in-out infinite;
+}
+
+@keyframes navDotPulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.3);
+    opacity: 0.7;
+  }
 }
 
 .nav-item:hover {
   opacity: 0.8;
+  background: rgba(102, 187, 106, 0.1);
+  transform: translateY(-2px);
+}
+
+.nav-item:active {
+  transform: translateY(0) scale(0.95);
 }
 
 /* Material Icons 样式 */
@@ -1206,9 +1449,24 @@ body {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  font-feature-settings: 'liga';
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+  /* 防止显示fallback文本 - 如果字体未加载，隐藏文本 */
+  font-variant: normal;
 }
+
+/* 确保Material Icons字体加载 */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/materialicons/v142/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+  font-display: swap;
+}
+
 
 .nav-item .material-icons {
   font-size: 24px;
@@ -1222,6 +1480,7 @@ body {
 .nav-item.active .material-icons {
   color: #66BB6A;
   transform: scale(1.15);
+  animation: iconBounce 2s ease-in-out infinite;
 }
 
 /* 其他图标样式 */
@@ -1361,6 +1620,48 @@ body {
   color: #333;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: none; /* 暂时隐藏，用视图切换替代 */
+}
+
+.map-view-toggle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.view-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: white;
+  border: 2px solid #E0E0E0;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+  border-color: #FFB74D;
+  color: #FFB74D;
+}
+
+.view-toggle-btn.active {
+  background: linear-gradient(90deg, #FFD54F 0%, #FFB74D 100%);
+  border-color: #FFB74D;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(255, 183, 77, 0.3);
+}
+
+.view-toggle-btn .material-icons {
+  font-size: 18px;
 }
 
 .map-header-right {
@@ -1995,6 +2296,88 @@ body {
 .settings-item-action .material-icons {
   font-size: 20px;
   color: #999;
+}
+
+/* 八字显示样式 */
+.bazi-display {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.bazi-pillar {
+  display: inline-block;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #FFF9E6 0%, #FFE0B2 100%);
+  border: 2px solid #FFB74D;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  min-width: 50px;
+  text-align: center;
+}
+
+/* 八字表单样式 */
+.bazi-form-modal {
+  max-width: 500px;
+}
+
+.bazi-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #E0E0E0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #FFB74D;
+}
+
+.form-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(90deg, #FFD54F 0%, #FFB74D 100%);
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-top: 8px;
+}
+
+.form-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 183, 77, 0.4);
+}
+
+.form-submit-btn:active {
+  transform: translateY(0);
 }
 
 /* 听课功能样式 */

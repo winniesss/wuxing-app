@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import { calculateBazi } from './utils/bazi/engine';
+import { saveUserBaziProfile } from './utils/bazi/storage';
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [birthday, setBirthday] = useState('');
+  const [birthTime, setBirthTime] = useState('12:00');
+  const [gender, setGender] = useState('male');
 
   useEffect(() => {
     // 检查是否已经登录
@@ -44,6 +49,12 @@ function Login({ onLogin }) {
         return;
       }
 
+      // 检查是否填写了生辰八字
+      if (!birthday) {
+        setError('请填写您的生辰八字（生日）');
+        return;
+      }
+
       users[username] = {
         username,
         password, // 实际应用中应该加密
@@ -54,6 +65,22 @@ function Login({ onLogin }) {
       // 保存当前登录用户
       const user = { username, createdAt: users[username].createdAt };
       localStorage.setItem('wuxing_user', JSON.stringify(user));
+      
+      // 计算并保存生辰八字
+      try {
+        const bazi = calculateBazi(birthday, birthTime);
+        const baziProfile = {
+          birthday,
+          birthTime,
+          gender,
+          ...bazi
+        };
+        saveUserBaziProfile(baziProfile);
+      } catch (e) {
+        console.error('保存八字失败', e);
+        // 即使八字保存失败，也允许登录
+      }
+      
       onLogin(user);
     } else {
       // 登录模式：验证用户名和密码
@@ -161,6 +188,46 @@ function Login({ onLogin }) {
             />
           </div>
 
+          {isRegistering && (
+            <>
+              <div className="login-input-group">
+                <label htmlFor="birthday">生辰八字 - 生日 *</label>
+                <input
+                  id="birthday"
+                  type="date"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
+                  className="login-input"
+                  required
+                />
+              </div>
+
+              <div className="login-input-group">
+                <label htmlFor="birthTime">出生时间</label>
+                <input
+                  id="birthTime"
+                  type="time"
+                  value={birthTime}
+                  onChange={(e) => setBirthTime(e.target.value)}
+                  className="login-input"
+                />
+              </div>
+
+              <div className="login-input-group">
+                <label htmlFor="gender">性别</label>
+                <select
+                  id="gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="login-input"
+                >
+                  <option value="male">男</option>
+                  <option value="female">女</option>
+                </select>
+              </div>
+            </>
+          )}
+
           {error && <div className="login-error">{error}</div>}
 
           <button type="submit" className="login-button">
@@ -175,6 +242,9 @@ function Login({ onLogin }) {
                 setIsRegistering(!isRegistering);
                 setError('');
                 setPassword('');
+                setBirthday('');
+                setBirthTime('12:00');
+                setGender('male');
               }}
             >
               {isRegistering ? '已有账号？去登录' : '没有账号？去注册'}
