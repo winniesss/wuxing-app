@@ -155,8 +155,8 @@ export const lessons = [
         id: 1,
         type: "single_choice",
         question: "十二地支中，哪个是阳支？",
-        options: ["丑", "卯", "巳", "未"],
-        correctAnswer: "卯",
+        options: ["子", "丑", "卯", "巳"],
+        correctAnswer: "子",
         explanation: "十二地支中，子、寅、辰、午、申、戌为阳支；丑、卯、巳、未、酉、亥为阴支。"
       },
       {
