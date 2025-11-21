@@ -13,16 +13,6 @@ import { lessons } from './data';
 import { getLessonProgress, getOverallProgress, isLessonUnlocked } from './utils/progress';
 import { getBadgeIdByLessonId, getBadgeConfig, isBadgeUnlocked } from './utils/badges';
 import { getUserBaziProfile } from './utils/bazi/storage';
-import { generateDailyTip, getTodayGanZhi } from './utils/bazi/dailyTip';
-
-// 五行英文转中文映射
-const ELEMENT_MAP = {
-  wood: '木',
-  fire: '火',
-  earth: '土',
-  metal: '金',
-  water: '水'
-};
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -97,8 +87,6 @@ function App() {
   // 获取用户数据
   const overallProgress = getOverallProgress(lessons.length);
   const userBazi = getUserBaziProfile();
-  const dailyTip = generateDailyTip(new Date(), userBazi);
-  const todayGanZhi = getTodayGanZhi();
 
   // 获取课程列表数据
   const unlockedLessons = lessons.filter(lesson => isLessonUnlocked(lesson.id));
@@ -153,18 +141,6 @@ function App() {
 
   const headerData = getHeaderContent();
 
-  // 获取五行对应的图标
-  const getElementIcon = (element) => {
-    const icons = {
-      wood: '🌱',
-      fire: '🔥',
-      earth: '🏔️',
-      metal: '⚔️',
-      water: '💧'
-    };
-    return icons[element] || '🌱';
-  };
-
   // 首页组件
   const HomeView = () => {
     // 过滤出未完成的课程（排除已完成的）
@@ -218,45 +194,8 @@ function App() {
           </div>
         </div>
 
-        {/* 每日修行提示卡 */}
-        {dailyTip && (
-          <div className="bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 rounded-2xl p-5 border-2 border-amber-200 shadow-lg mb-6">
-            <div className="flex items-start gap-3 mb-3">
-              <span className="text-3xl">{getElementIcon(dailyTip.element)}</span>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-slate-900 mb-1.5">{dailyTip.title}</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">{dailyTip.summary}</p>
-              </div>
-            </div>
-            <div className="space-y-2.5 text-sm">
-              <div className="flex items-start gap-2">
-                <span className="text-emerald-600 font-semibold min-w-[50px] flex items-center gap-1">
-                  <span>✨</span> <span>宜：</span>
-                </span>
-                <span className="text-slate-700 flex-1 leading-relaxed">{dailyTip.focus.join('、')}</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-red-500 font-semibold min-w-[50px] flex items-center gap-1">
-                  <span>❗</span> <span>忌：</span>
-                </span>
-                <span className="text-slate-700 flex-1 leading-relaxed">{dailyTip.avoid.join('、')}</span>
-              </div>
-              {todayGanZhi && (
-                <div className="flex items-center gap-2 pt-3 border-t border-amber-200 mt-3">
-                  <span className="text-slate-600 font-medium flex items-center gap-1">
-                    <span>🗓️</span> <span>今日干支：</span>
-                  </span>
-                  <span className="text-slate-700 font-semibold">
-                    {todayGanZhi.gan}{todayGanZhi.zhi}({ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element})
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* 今日课程标题 */}
-        <div className="mb-5">
+        <div style={{ marginBottom: '1.75rem' }}>
           <h3 className="text-2xl font-bold text-slate-900">今日课程</h3>
         </div>
         {incompleteCourses.length === 0 ? (
