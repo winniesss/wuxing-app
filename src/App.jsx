@@ -7,13 +7,22 @@ import SettingsPage from './SettingsPage';
 import { 
   Play, CheckCircle2, BookOpen, User, MessageSquare, Home, 
   ChevronRight, Calendar, Trophy, MoreHorizontal, Map as MapIcon, 
-  Award, Lock, Send, RefreshCw, Settings, Bell, Shield
+  Award, Lock, Send, RefreshCw, Settings, Bell, Shield, FileText
 } from 'lucide-react';
 import { lessons } from './data';
 import { getLessonProgress, getOverallProgress, isLessonUnlocked } from './utils/progress';
 import { getBadgeIdByLessonId, getBadgeConfig, isBadgeUnlocked } from './utils/badges';
 import { getUserBaziProfile } from './utils/bazi/storage';
 import { generateDailyTip, getTodayGanZhi } from './utils/bazi/dailyTip';
+
+// 五行英文转中文映射
+const ELEMENT_MAP = {
+  wood: '木',
+  fire: '火',
+  earth: '土',
+  metal: '金',
+  water: '水'
+};
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -88,7 +97,7 @@ function App() {
   // 获取用户数据
   const overallProgress = getOverallProgress(lessons.length);
   const userBazi = getUserBaziProfile();
-  const dailyTip = userBazi ? generateDailyTip(new Date(), userBazi) : null;
+  const dailyTip = generateDailyTip(new Date(), userBazi);
   const todayGanZhi = getTodayGanZhi();
 
   // 获取课程列表数据
@@ -144,21 +153,111 @@ function App() {
 
   const headerData = getHeaderContent();
 
+  // 获取五行对应的图标
+  const getElementIcon = (element) => {
+    const icons = {
+      wood: '🌱',
+      fire: '🔥',
+      earth: '🏔️',
+      metal: '⚔️',
+      water: '💧'
+    };
+    return icons[element] || '🌱';
+  };
+
   // 首页组件
   const HomeView = () => {
     // 过滤出未完成的课程（排除已完成的）
     const incompleteCourses = courseList.filter(course => course.status !== 'completed');
+    const remainingCount = unlockedLessons.filter(lesson => {
+      const progress = getLessonProgress(lesson.id);
+      return !progress.completed;
+    }).length;
     
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-slate-900">今日课程</h3>
-          <button 
-            onClick={() => setActiveTab('learn')}
-            className="text-sm text-slate-600 font-medium active:text-slate-900 active:bg-slate-100 border border-slate-300 px-4 py-2 rounded-lg transition-all touch-manipulation"
-          >
-            查看全部
-          </button>
+      <div className="space-y-0">
+        {/* 顶部绿色区域 - 用户信息和进度 */}
+        <div className="bg-gradient-to-b from-emerald-500 to-teal-600 px-6 pt-6 pb-6 -mx-6 -mt-6 mb-6">
+          {/* 顶部导航栏 */}
+          <div className="flex items-center justify-between mb-6">
+            <BookOpen size={24} className="text-white" />
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-2xl mb-1 shadow-lg">
+                  {user?.username ? user.username.charAt(0).toUpperCase() : '🧘'}
+                </div>
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                  Lv. {Math.max(1, Math.floor(overallProgress.completed / 3) + 1)}
+                </div>
+              </div>
+            </div>
+            <MoreHorizontal size={24} className="text-white" />
+          </div>
+
+          {/* 进度条区域 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-white">
+              <Trophy size={20} />
+              <span className="font-medium">学习进度</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-3 bg-white/30 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-yellow-400 rounded-full transition-all duration-300"
+                  style={{ width: `${overallProgress.percentage}%` }}
+                ></div>
+              </div>
+              <span className="text-white font-semibold text-sm whitespace-nowrap">
+                {overallProgress.completed}/{lessons.length} 关卡
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-white/90">
+              <FileText size={18} />
+              <span className="text-sm">{remainingCount} 个课程待学习</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 每日修行提示卡 */}
+        {dailyTip && (
+          <div className="bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 rounded-2xl p-5 border-2 border-amber-200 shadow-lg mb-6">
+            <div className="flex items-start gap-3 mb-3">
+              <span className="text-3xl">{getElementIcon(dailyTip.element)}</span>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-slate-900 mb-1.5">{dailyTip.title}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">{dailyTip.summary}</p>
+              </div>
+            </div>
+            <div className="space-y-2.5 text-sm">
+              <div className="flex items-start gap-2">
+                <span className="text-emerald-600 font-semibold min-w-[50px] flex items-center gap-1">
+                  <span>✨</span> <span>宜：</span>
+                </span>
+                <span className="text-slate-700 flex-1 leading-relaxed">{dailyTip.focus.join('、')}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-red-500 font-semibold min-w-[50px] flex items-center gap-1">
+                  <span>❗</span> <span>忌：</span>
+                </span>
+                <span className="text-slate-700 flex-1 leading-relaxed">{dailyTip.avoid.join('、')}</span>
+              </div>
+              {todayGanZhi && (
+                <div className="flex items-center gap-2 pt-3 border-t border-amber-200 mt-3">
+                  <span className="text-slate-600 font-medium flex items-center gap-1">
+                    <span>🗓️</span> <span>今日干支：</span>
+                  </span>
+                  <span className="text-slate-700 font-semibold">
+                    {todayGanZhi.gan}{todayGanZhi.zhi}({ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element})
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 今日课程标题 */}
+        <div className="mb-5">
+          <h3 className="text-2xl font-bold text-slate-900">今日课程</h3>
         </div>
         {incompleteCourses.length === 0 ? (
           <div className="text-center py-12">
@@ -167,39 +266,43 @@ function App() {
             <p className="text-slate-400 text-sm mt-2">可以前往"学习"页面查看全部课程</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {incompleteCourses.map((course) => (
           <div 
             key={course.id} 
-            className={`group bg-white border border-slate-200 rounded-lg p-4 transition-all touch-manipulation ${
+            className={`group bg-white border-2 rounded-xl p-6 transition-all touch-manipulation shadow-sm ${
               course.status !== 'locked' 
-                ? 'cursor-pointer active:bg-slate-50 active:border-teal-300 active:scale-[0.98]' 
-                : 'cursor-not-allowed opacity-75'
+                ? 'cursor-pointer active:bg-slate-50 active:border-teal-400 active:shadow-md active:scale-[0.98] border-slate-200' 
+                : 'cursor-not-allowed opacity-60 border-slate-200'
             }`}
             onClick={() => course.status !== 'locked' && handleSelectLesson(course.lesson)}
           >
-            <div className="flex items-start justify-between mb-2">
-              <span className="text-xs font-medium text-slate-600">
-                {course.level} {course.progress}/{course.total} 节
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              {course.status !== 'locked' ? (
-                <Play size={20} className="text-slate-900 shrink-0" fill="currentColor" />
-              ) : (
-                <Play size={20} className="text-slate-400 shrink-0" fill="currentColor" />
-              )}
-              <div className="flex-1">
-                <h4 className="font-semibold text-slate-900 text-base mb-1">{course.title}</h4>
-                <div className="flex items-center gap-2">
-                  <p className="text-slate-600 text-sm">{course.subtitle}</p>
+            <div className="flex items-center gap-4">
+              <div className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 ${
+                course.status !== 'locked' 
+                  ? 'bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md' 
+                  : 'bg-slate-200 text-slate-400'
+              }`}>
+                <span className="text-xl font-bold">{course.id}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-xs font-medium text-slate-500">
+                    {course.level}
+                  </span>
                   {course.status === 'locked' && (
-                    <Lock size={14} className="text-slate-400 shrink-0" />
+                    <Lock size={12} className="text-slate-400 shrink-0" />
                   )}
                 </div>
+                <h4 className="font-bold text-slate-900 text-lg mb-1.5 leading-tight">{course.title}</h4>
+                <p className="text-slate-600 text-sm line-clamp-1">{course.subtitle}</p>
               </div>
               {course.status !== 'locked' && (
-                <ChevronRight size={20} className="text-slate-400 group-hover:text-slate-600 shrink-0" />
+                <div className="shrink-0">
+                  <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+                    <Play size={20} className="text-teal-600 ml-0.5" fill="currentColor" />
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -410,31 +513,14 @@ function App() {
         {/* --- 主内容区域 --- */}
         <div className="flex-1 overflow-y-auto pb-20" style={{ paddingBottom: '80px' }}>
           {/* --- 头部区域 --- */}
-          {activeTab !== 'chat' && (
-            <header className="bg-white border-b border-slate-200 px-6 pt-4 pb-6">
-              {activeTab === 'home' && (
-                <div className="space-y-3">
-                  <h1 className="text-2xl font-bold text-slate-900">学习进度</h1>
-                  <div className="flex items-center gap-4 text-sm text-slate-600">
-                    <span>{overallProgress.completed} / {lessons.length} 关卡</span>
-                    <span className="flex items-center gap-1">
-                      {unlockedLessons.filter(lesson => {
-                        const progress = getLessonProgress(lesson.id);
-                        return !progress.completed;
-                      }).length} 个课程待学习
-                    </span>
-                  </div>
-                </div>
-              )}
-              
-              {activeTab !== 'home' && (
-                <h1 className="text-2xl font-bold text-slate-900">{headerData.title}</h1>
-              )}
+          {activeTab !== 'chat' && activeTab !== 'home' && (
+            <header className="bg-white border-b border-slate-200 px-6 pt-4 pb-6 sticky top-0 z-40">
+              <h1 className="text-2xl font-bold text-slate-900">{headerData.title}</h1>
             </header>
           )}
 
           {/* --- 内容渲染区域 --- */}
-          <main className={activeTab === 'chat' ? '' : 'px-6 py-6'}>
+          <main className={activeTab === 'chat' ? '' : activeTab === 'home' ? 'px-6 pt-0 pb-6' : 'px-6 py-6'}>
             {activeTab === 'home' && <HomeView />}
             {activeTab === 'learn' && <LearnView />}
             {activeTab === 'chat' && (

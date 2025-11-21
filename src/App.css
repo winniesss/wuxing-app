@@ -944,6 +944,156 @@ body {
   font-weight: 500;
 }
 
+/* 每日修行提示卡 */
+.home-tip-card {
+  margin: 16px 20px;
+  animation: tipCardSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
+
+@keyframes tipCardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tip-card-content {
+  background: linear-gradient(135deg, #FFFBF0 0%, #FFF5E6 100%);
+  border: 2px solid #FFB74D;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(255, 183, 77, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.tip-card-content::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 183, 77, 0.1), transparent);
+  animation: tipShine 3s linear infinite;
+}
+
+@keyframes tipShine {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.tip-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.tip-icon {
+  font-size: 28px;
+  animation: tipIconBounce 2s ease-in-out infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@keyframes tipIconBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-4px) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(-4px) rotate(5deg);
+  }
+}
+
+.tip-title-section {
+  flex: 1;
+}
+
+.tip-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+}
+
+.tip-summary {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tip-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.tip-label {
+  font-weight: 600;
+  color: #FFB74D;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.tip-focus .tip-label {
+  color: #4CAF50;
+}
+
+.tip-avoid .tip-label {
+  color: #FF9800;
+}
+
+.tip-value {
+  color: #333;
+  flex: 1;
+}
+
+.tip-ganzhi {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #FFE0B2;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.tip-ganzhi .tip-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.tip-ganzhi .tip-value {
+  color: #666;
+}
+
 /* 课程列表 */
 .home-lessons {
   padding: 20px;
@@ -1948,6 +2098,35 @@ body {
 
   .goals-text {
     font-size: 18px;
+  }
+
+  .home-tip-card {
+    margin: 12px 16px;
+  }
+
+  .tip-card-content {
+    padding: 14px;
+  }
+
+  .tip-title {
+    font-size: 16px;
+  }
+
+  .tip-summary {
+    font-size: 13px;
+  }
+
+  .tip-item {
+    font-size: 12px;
+  }
+
+  .tip-label {
+    min-width: 70px;
+    font-size: 12px;
+  }
+
+  .tip-ganzhi {
+    font-size: 12px;
   }
 
   .home-lessons {

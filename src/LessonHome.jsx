@@ -1,9 +1,33 @@
+import { useState, useEffect } from 'react';
 import { lessons } from './data';
 import { getLessonProgress, getOverallProgress, isLessonUnlocked } from './utils/progress';
 import { getHuskieImage } from './utils/huskieAssets';
+import { generateDailyTip, getTodayGanZhi } from './utils/bazi/dailyTip';
+import { getUserBaziProfile } from './utils/bazi/storage';
 import './App.css';
 
+// 五行英文转中文映射
+const ELEMENT_MAP = {
+  wood: '木',
+  fire: '火',
+  earth: '土',
+  metal: '金',
+  water: '水'
+};
+
 function LessonHome({ onSelectLesson, onGoToMap, currentView, onNavClick }) {
+  const [dailyTip, setDailyTip] = useState(null);
+  const [todayGanZhi, setTodayGanZhi] = useState(null);
+
+  useEffect(() => {
+    // 加载每日修行提醒
+    const userBazi = getUserBaziProfile();
+    const tip = generateDailyTip(new Date(), userBazi);
+    const ganZhi = getTodayGanZhi();
+    
+    setDailyTip(tip);
+    setTodayGanZhi(ganZhi);
+  }, []);
 
   const overallProgress = getOverallProgress(lessons.length);
   
@@ -51,7 +75,7 @@ function LessonHome({ onSelectLesson, onGoToMap, currentView, onNavClick }) {
       {/* 顶部场景区域 */}
       <div className="home-scene">
         <div className="scene-background">
-          <svg className="scene-svg" viewBox="0 0 750 340" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <svg className="scene-svg" viewBox="0 0 750 340" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="wallGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#CBECE8"/>
@@ -121,6 +145,37 @@ function LessonHome({ onSelectLesson, onGoToMap, currentView, onNavClick }) {
           </span>
         </div>
       </div>
+
+      {/* 每日修行提示卡 */}
+      {dailyTip && (
+        <div className="home-tip-card">
+          <div className="tip-card-content">
+            <div className="tip-header">
+              <span className="tip-icon">🌱</span>
+              <div className="tip-title-section">
+                <h3 className="tip-title">{dailyTip.title}</h3>
+                <p className="tip-summary">{dailyTip.summary}</p>
+              </div>
+            </div>
+            <div className="tip-details">
+              <div className="tip-item tip-focus">
+                <span className="tip-label">✨ 今日适合：</span>
+                <span className="tip-value">{dailyTip.focus.join('、')}</span>
+              </div>
+              <div className="tip-item tip-avoid">
+                <span className="tip-label">⚠️ 今日避免：</span>
+                <span className="tip-value">{dailyTip.avoid.join('、')}</span>
+              </div>
+              {todayGanZhi && (
+                <div className="tip-ganzhi">
+                  <span className="tip-label">📅 今日：</span>
+                  <span className="tip-value">{todayGanZhi.gan}{todayGanZhi.zhi} ({ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element})</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 课程列表 */}
       <div className="home-lessons">
