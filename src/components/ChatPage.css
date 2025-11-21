@@ -429,3 +429,13 @@
   }
 }
 
+/* 隐藏滚动条但保持滚动功能 */
+.chat-scroll-area {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.chat-scroll-area::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+

@@ -20,6 +20,8 @@ function ChatPage({ currentView, onNavClick }) {
   const [dailyTip, setDailyTip] = useState(null);
   const [todayGanZhi, setTodayGanZhi] = useState(null);
   const messagesEndRef = useRef(null);
+  const contentRef = useRef(null);
+  const [needsPadding, setNeedsPadding] = useState(false);
 
   useEffect(() => {
     // 加载每日修行提醒
@@ -32,19 +34,52 @@ function ChatPage({ currentView, onNavClick }) {
     
     // 初始化欢迎消息
     const welcomeMessage = userBazi 
-      ? `你好！我是精通五行的道士。我可以根据你的生辰八字为你进行小六壬占卜。\n\n请告诉我3个数字（1-6之间），我将为你占卜。\n\n例如：1 2 3 或 一二三`
-      : `你好！我是精通五行的道士。我可以为你进行小六壬占卜。\n\n请先完善你的生辰八字信息，然后告诉我3个数字（1-6之间），我将为你占卜。\n\n例如：1 2 3 或 一二三`;
+      ? `你好呀！我是修行路上的伙伴，擅长五行之道。\n\n我可以根据你的生辰八字为你进行小六壬占卜，帮你解答疑惑。\n\n只需要告诉我3个数字（1-6之间）就可以开始占卜啦～\n\n例如：1 2 3 或 一二三`
+      : `你好呀！我是修行路上的伙伴，擅长五行之道。\n\n我可以为你进行小六壬占卜，帮你解答疑惑。\n\n如果你先完善一下生辰八字信息，占卜会更准确哦～\n\n然后告诉我3个数字（1-6之间）就可以开始占卜啦！\n\n例如：1 2 3 或 一二三`;
     
     setMessages([{
       id: 1,
       role: 'system',
       text: welcomeMessage
     }]);
+    
+    // 确保页面滚动到顶部，显示提示卡
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   }, []);
 
-  // 自动滚动到底部
+  // 检查是否需要 paddingBottom
   useEffect(() => {
-    scrollToBottom();
+    const checkHeight = () => {
+      if (contentRef.current) {
+        const container = contentRef.current.parentElement;
+        if (container) {
+          const contentHeight = contentRef.current.scrollHeight;
+          const containerHeight = container.clientHeight;
+          // 只有当内容高度超过容器高度时才需要 paddingBottom
+          // 加上 140px 的 padding 后，如果总高度超过容器，才需要 padding
+          const totalHeightWithPadding = contentHeight + 140;
+          setNeedsPadding(totalHeightWithPadding > containerHeight);
+        }
+      }
+    };
+    
+    // 延迟检查，确保内容已渲染
+    setTimeout(checkHeight, 100);
+    setTimeout(checkHeight, 300);
+    
+    // 监听窗口大小变化
+    window.addEventListener('resize', checkHeight);
+    return () => window.removeEventListener('resize', checkHeight);
+  }, [messages, dailyTip]);
+
+  // 自动滚动到底部（只在有新消息时滚动，初始加载时不滚动）
+  useEffect(() => {
+    // 如果消息数量大于1（即有新消息），才滚动到底部
+    if (messages.length > 1) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   const scrollToBottom = () => {
@@ -161,7 +196,22 @@ function ChatPage({ currentView, onNavClick }) {
         </header>
         
         {/* 内容区域 - 可滚动 */}
-        <div className="flex-1 overflow-y-auto" style={{ minHeight: 0, WebkitOverflowScrolling: 'touch' }}>
+        <div 
+          className="flex-1" 
+          style={{ 
+            minHeight: 0, 
+            overflowY: needsPadding ? 'auto' : 'visible',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
+          <style>{`
+            .flex-1::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+          <div ref={contentRef} style={{ paddingBottom: needsPadding ? '140px' : '20px' }}>
         {/* 今日修行提醒卡片 */}
         {dailyTip && (
           <div className="px-4 pt-3 pb-2">
@@ -175,17 +225,17 @@ function ChatPage({ currentView, onNavClick }) {
               </div>
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-start gap-2">
-                  <span className="text-teal-600 font-medium min-w-[70px] text-xs">✨ 今日适合：</span>
-                  <span className="text-slate-700 text-xs">{dailyTip.focus.join('、')}</span>
+                  <span className="text-teal-600 font-medium min-w-[70px] text-xs" style={{ color: '#0d9488' }}>✨ 今日适合：</span>
+                  <span className="text-slate-700 text-xs" style={{ color: '#334155' }}>{dailyTip.focus.join('、')}</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="text-amber-600 font-medium min-w-[70px] text-xs">⚠️ 今日避免：</span>
-                  <span className="text-slate-700 text-xs">{dailyTip.avoid.join('、')}</span>
+                  <span className="text-amber-600 font-medium min-w-[70px] text-xs" style={{ color: '#d97706' }}>⚠️ 今日避免：</span>
+                  <span className="text-slate-700 text-xs" style={{ color: '#334155' }}>{dailyTip.avoid.join('、')}</span>
                 </div>
                 {todayGanZhi && (
                   <div className="flex items-start gap-2 pt-1.5 border-t border-teal-200">
-                    <span className="text-slate-600 font-medium min-w-[70px] text-xs">📅 今日：</span>
-                    <span className="text-slate-700 text-xs">{todayGanZhi.gan}{todayGanZhi.zhi} ({ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element})</span>
+                    <span className="text-slate-600 font-medium min-w-[70px] text-xs" style={{ color: '#475569' }}>📅 今日：</span>
+                    <span className="text-slate-700 text-xs" style={{ color: '#334155', fontWeight: '600' }}>{todayGanZhi.gan}{todayGanZhi.zhi} ({ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element})</span>
                   </div>
                 )}
               </div>
@@ -217,10 +267,11 @@ function ChatPage({ currentView, onNavClick }) {
           ))}
           <div ref={messagesEndRef} />
         </div>
+          </div>
         </div>
 
-      {/* 输入框 */}
-      <div className="bg-white border-t border-slate-200 px-3 py-2 flex-shrink-0">
+      {/* 输入框 - 固定在底部 */}
+      <div className="bg-white border-t border-slate-200 px-3 py-2 flex-shrink-0 sticky bottom-0 z-50">
         <form onSubmit={handleSend} className="flex items-center gap-2 mb-1.5">
           <input
             type="text"
