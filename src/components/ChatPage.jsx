@@ -21,7 +21,7 @@ function ChatPage({ currentView, onNavClick }) {
   const [todayGanZhi, setTodayGanZhi] = useState(null);
   const messagesEndRef = useRef(null);
   const contentRef = useRef(null);
-  const [needsPadding, setNeedsPadding] = useState(false);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     // 加载每日修行提醒
@@ -49,30 +49,6 @@ function ChatPage({ currentView, onNavClick }) {
     }, 100);
   }, []);
 
-  // 检查是否需要 paddingBottom
-  useEffect(() => {
-    const checkHeight = () => {
-      if (contentRef.current) {
-        const container = contentRef.current.parentElement;
-        if (container) {
-          const contentHeight = contentRef.current.scrollHeight;
-          const containerHeight = container.clientHeight;
-          // 只有当内容高度超过容器高度时才需要 paddingBottom
-          // 加上 140px 的 padding 后，如果总高度超过容器，才需要 padding
-          const totalHeightWithPadding = contentHeight + 140;
-          setNeedsPadding(totalHeightWithPadding > containerHeight);
-        }
-      }
-    };
-    
-    // 延迟检查，确保内容已渲染
-    setTimeout(checkHeight, 100);
-    setTimeout(checkHeight, 300);
-    
-    // 监听窗口大小变化
-    window.addEventListener('resize', checkHeight);
-    return () => window.removeEventListener('resize', checkHeight);
-  }, [messages, dailyTip]);
 
   // 自动滚动到底部（只在有新消息时滚动，初始加载时不滚动）
   useEffect(() => {
@@ -81,6 +57,33 @@ function ChatPage({ currentView, onNavClick }) {
       scrollToBottom();
     }
   }, [messages]);
+
+  // 处理输入框聚焦时的布局
+  useEffect(() => {
+    const handleFocus = () => {
+      // 延迟滚动，确保键盘已弹出
+      setTimeout(() => {
+        scrollToBottom();
+      }, 300);
+    };
+
+    const handleBlur = () => {
+      // 输入框失焦时，确保页面回到正常状态
+      if (contentRef.current) {
+        contentRef.current.scrollTop = contentRef.current.scrollHeight;
+      }
+    };
+
+    const input = inputRef.current;
+    if (input) {
+      input.addEventListener('focus', handleFocus);
+      input.addEventListener('blur', handleBlur);
+      return () => {
+        input.removeEventListener('focus', handleFocus);
+        input.removeEventListener('blur', handleBlur);
+      };
+    }
+  }, []);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -188,30 +191,38 @@ function ChatPage({ currentView, onNavClick }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 relative mx-auto max-w-md" style={{ width: '100%', maxWidth: '428px' }}>
-      <div className="flex flex-col h-screen">
-        {/* 头部 - 固定在顶部 */}
-        <header className="bg-white border-b border-slate-200 px-6 pt-3 pb-3 flex-shrink-0 sticky top-0 z-50">
-          <h1 className="text-xl font-bold text-slate-900">修行聊天</h1>
-        </header>
-        
-        {/* 内容区域 - 可滚动 */}
-        <div 
-          className="flex-1" 
-          style={{ 
-            minHeight: 0, 
-            overflowY: needsPadding ? 'auto' : 'visible',
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}
-        >
-          <style>{`
-            .flex-1::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-          <div ref={contentRef} style={{ paddingBottom: needsPadding ? '140px' : '20px' }}>
+    <div className="bg-slate-50 font-sans text-slate-900 relative mx-auto max-w-md" style={{ 
+      width: '100%', 
+      maxWidth: '428px', 
+      height: '100vh',
+      height: '100dvh',
+      display: 'flex', 
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
+      {/* 头部 - 固定在顶部 */}
+      <header className="bg-white border-b border-slate-200 px-6 pt-3 pb-3 flex-shrink-0 z-50">
+        <h1 className="text-xl font-bold text-slate-900">修行聊天</h1>
+      </header>
+      
+      {/* 内容区域 - 可滚动 */}
+      <div 
+        className="flex-1 overflow-y-auto" 
+        ref={contentRef}
+        style={{ 
+          minHeight: 0,
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          paddingBottom: '140px'
+        }}
+      >
+        <style>{`
+          .flex-1::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div>
         {/* 今日修行提醒卡片 */}
         {dailyTip && (
           <div className="px-4 pt-3 pb-2">
@@ -267,13 +278,16 @@ function ChatPage({ currentView, onNavClick }) {
           ))}
           <div ref={messagesEndRef} />
         </div>
-          </div>
         </div>
+      </div>
 
       {/* 输入框 - 固定在底部 */}
-      <div className="bg-white border-t border-slate-200 px-3 py-2 flex-shrink-0 sticky bottom-0 z-50">
+      <div className="bg-white border-t border-slate-200 px-3 py-2 flex-shrink-0 z-50" style={{ 
+        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0.5rem))'
+      }}>
         <form onSubmit={handleSend} className="flex items-center gap-2 mb-1.5">
           <input
+            ref={inputRef}
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -301,7 +315,6 @@ function ChatPage({ currentView, onNavClick }) {
           <Shuffle size={16} />
           <span>摇一摇 随机占卜</span>
         </button>
-      </div>
       </div>
     </div>
   );

@@ -160,7 +160,7 @@ function App() {
     return (
       <div className="space-y-0">
         {/* 顶部绿色区域 - 用户信息和进度 */}
-        <div className="bg-gradient-to-b from-emerald-500 to-teal-600 px-6 pt-6 pb-6 -mx-6 -mt-6 mb-6">
+        <div className="bg-gradient-to-b from-emerald-500 to-teal-600 px-6 pt-8 pb-6 -mx-6 -mt-6 mb-6" style={{ paddingTop: 'max(2rem, env(safe-area-inset-top, 2rem))' }}>
           {/* 顶部导航栏 */}
           <div className="flex items-center justify-between mb-6">
             <BookOpen size={24} className="text-white" />

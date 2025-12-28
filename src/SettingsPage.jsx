@@ -378,34 +378,6 @@ function SettingsPage({ currentView, onNavClick, user, onLogout }) {
           </div>
         </div>
       )}
-
-      {/* 底部导航 */}
-      <div className="bottom-nav">
-        <div 
-          className={`nav-item ${currentView === 'home' ? 'active' : ''}`}
-          onClick={() => onNavClick('home')}
-        >
-          <span className="material-icons">home</span>
-        </div>
-        <div 
-          className={`nav-item ${currentView === 'map' ? 'active' : ''}`}
-          onClick={() => onNavClick('map')}
-        >
-          <span className="material-icons">map</span>
-        </div>
-        <div 
-          className={`nav-item ${currentView === 'profile' ? 'active' : ''}`}
-          onClick={() => onNavClick('profile')}
-        >
-          <span className="material-icons">person</span>
-        </div>
-        <div 
-          className={`nav-item ${currentView === 'chat' ? 'active' : ''}`}
-          onClick={() => onNavClick('chat')}
-        >
-          <span className="material-icons">chat</span>
-        </div>
-      </div>
     </div>
   );
 }
