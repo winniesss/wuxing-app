@@ -54,28 +54,35 @@ export function generateXiaoLiuRenResult(num1, num2, num3, userBazi) {
       '壬': '水', '癸': '水'
     };
     const userElement = ganWuxing[userBazi.dayStem] || '木';
-    interpretation = `根据你的八字（日主${userBazi.dayStem}，五行${userElement}），结合小六壬占卜结果：`;
+    interpretation = `📅 你的八字：日主${userBazi.dayStem}（${userElement}）\n\n🔮 小六壬占卜结果：`;
   } else {
-    interpretation = '小六壬占卜结果：';
+    interpretation = '🔮 小六壬占卜结果：';
   }
   
-  // 根据结果给出建议
+  // 根据结果给出通用建议（涵盖生活、工作、感情、健康、财运等）
   let advice = '';
-  if (meaning === '大吉') {
-    advice = '此卦大吉，宜把握时机，积极行动。适合学习新知识、开始新计划。';
-  } else if (meaning === '吉') {
-    advice = '此卦为吉，运势平稳，适合稳步推进。可以继续当前的学习计划。';
-  } else if (meaning === '凶') {
-    advice = '此卦为凶，需谨慎行事，避免冲动决策。建议多思考，稳中求进。';
-  } else {
-    advice = '此卦大凶，宜静不宜动。建议暂停重要决策，多观察，等待更好的时机。';
+  const positionName = name;
+  
+  // 根据具体位置给出更详细的建议
+  if (positionName === '大安') {
+    advice = '✨ 此卦大吉，万事顺遂。\n\n• 事业：适合开展新项目，把握良机\n• 感情：关系和谐，适合表达心意\n• 财运：正财稳定，可考虑投资\n• 健康：身体康健，注意休息\n• 出行：平安顺利，宜出行';
+  } else if (positionName === '留连') {
+    advice = '⚠️ 此卦为凶，需谨慎行事。\n\n• 事业：进展缓慢，需耐心等待\n• 感情：可能有波折，多沟通理解\n• 财运：财运一般，避免大额投资\n• 健康：注意身体，避免过度劳累\n• 出行：可能延误，提前准备';
+  } else if (positionName === '速喜') {
+    advice = '🎉 此卦为吉，喜事将至。\n\n• 事业：进展迅速，适合主动出击\n• 感情：关系升温，适合表白或求婚\n• 财运：偏财较旺，可把握机会\n• 健康：身体良好，适合运动\n• 出行：出行顺利，适合远行';
+  } else if (positionName === '赤口') {
+    advice = '⚠️ 此卦为凶，口舌是非。\n\n• 事业：可能遇到阻碍，需谨慎处理\n• 感情：易有争执，多包容理解\n• 财运：财运不佳，避免冲动消费\n• 健康：注意口舌、呼吸系统\n• 出行：可能不顺，注意安全';
+  } else if (positionName === '小吉') {
+    advice = '✨ 此卦大吉，小有收获。\n\n• 事业：稳步发展，适合合作\n• 感情：关系融洽，适合约会\n• 财运：小有进账，适合储蓄\n• 健康：身体良好，保持规律作息\n• 出行：出行顺利，适合短途';
+  } else if (positionName === '空亡') {
+    advice = '❌ 此卦大凶，宜静不宜动。\n\n• 事业：进展不顺，宜等待时机\n• 感情：可能冷淡，多关心对方\n• 财运：财运不佳，避免投资\n• 健康：注意身体，多休息\n• 出行：不宜出行，易有意外';
   }
   
   return {
     ...result,
     interpretation,
     advice,
-    fullText: `${interpretation}\n\n【${name}】${meaning}\n\n${description}\n\n${advice}`
+    fullText: `${interpretation}\n\n【${name}】${meaning}\n\n${description}\n\n${advice}\n\n💡 提示：以上建议仅供参考，具体行动还需结合实际情况。`
   };
 }
 
