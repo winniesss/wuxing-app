@@ -3,10 +3,11 @@ import './index.css';
 import Quiz from './Quiz';
 import ChatPage from './components/ChatPage';
 import SettingsPage from './SettingsPage';
+import KnowledgeBase from './components/KnowledgeBase';
 import { 
   Play, CheckCircle2, BookOpen, User, MessageSquare, Home, 
   ChevronRight, Calendar, Trophy, MoreHorizontal, Map as MapIcon, 
-  Award, Lock, Send, RefreshCw, Settings, Bell, Shield, FileText
+  Award, Lock, Send, RefreshCw, Settings, Bell, Shield, FileText, Library
 } from 'lucide-react';
 import { lessons } from './data';
 import { getLessonProgress, getOverallProgress, isLessonUnlocked } from './utils/progress';
@@ -141,6 +142,7 @@ function App() {
       case 'home': return { title: '学习进度', showStats: true };
       case 'learn': return { title: '修行之路', showStats: false };
       case 'chat': return { title: '修行聊天', showStats: false };
+      case 'knowledge': return { title: '知识库', showStats: false };
       case 'profile': return { title: '个人中心', showStats: false };
       default: return { title: 'App', showStats: true };
     }
@@ -412,6 +414,12 @@ function App() {
       {/* 设置菜单 */}
       <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
         <MenuItem 
+          icon={<Library size={18} />} 
+          label="知识库" 
+          onClick={() => setActiveTab('knowledge')}
+        />
+        <div className="h-px bg-slate-50" />
+        <MenuItem 
           icon={<FileText size={18} />} 
           label="保存现有记录" 
           onClick={() => {
@@ -491,16 +499,17 @@ function App() {
         {/* --- 主内容区域 --- */}
         <div className="flex-1 overflow-y-auto pb-20" style={{ paddingBottom: '80px' }}>
           {/* --- 头部区域 --- */}
-          {activeTab !== 'chat' && activeTab !== 'home' && (
+          {activeTab !== 'chat' && activeTab !== 'home' && activeTab !== 'knowledge' && (
             <header className="bg-white border-b border-slate-200 px-6 pt-4 pb-6 sticky top-0 z-40">
               <h1 className="text-2xl font-bold text-slate-900">{headerData.title}</h1>
             </header>
           )}
 
           {/* --- 内容渲染区域 --- */}
-          <main className={activeTab === 'chat' ? '' : activeTab === 'home' ? 'px-6 pt-0 pb-6' : 'px-6 py-6'}>
+          <main className={activeTab === 'chat' ? '' : activeTab === 'home' ? 'px-6 pt-0 pb-6' : activeTab === 'knowledge' ? '' : 'px-6 py-6'}>
             {activeTab === 'home' && <HomeView />}
             {activeTab === 'learn' && <LearnView />}
+            {activeTab === 'knowledge' && <KnowledgeBase />}
             {activeTab === 'chat' && (
               <ChatPage 
                 currentView={activeTab} 

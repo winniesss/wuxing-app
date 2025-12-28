@@ -178,12 +178,57 @@ function ChatPage({ currentView, onNavClick }) {
     
     // 检查是否询问建议
     if (input.includes('适合') || input.includes('应该') || input.includes('建议')) {
-      const elementCN = tip?.element ? ELEMENT_MAP[tip.element] || tip.element : '五行';
-      return `根据今日的${elementCN}属性，建议你：${tip?.focus.join('、') || '保持专注学习'}。\n\n如需更详细的占卜，请告诉我3个数字进行小六壬占卜。`;
+      const userBazi = getUserBaziProfile();
+      const todayElementCN = todayGanZhi?.element ? ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element : '五行';
+      const todayGanZhiStr = todayGanZhi ? `${todayGanZhi.gan}${todayGanZhi.zhi}` : '今日';
+      
+      let reply = `📅 今日万年历：${todayGanZhiStr}（${todayElementCN}日）\n\n`;
+      
+      if (userBazi && userBazi.dayStem) {
+        const userElement = getElement(userBazi.dayStem);
+        const userElementCN = userElement ? ELEMENT_MAP[userElement] || userElement : '未知';
+        reply += `👤 你的日主：${userBazi.dayStem}（${userElementCN}）\n\n`;
+        reply += `✨ 根据你的${userElementCN}日主和今日${todayElementCN}日，今日适合：\n`;
+        tip?.focus.forEach((item, index) => {
+          reply += `• ${item}\n`;
+        });
+        reply += `\n💡 ${tip?.elementHint || '保持平衡，顺应天时'}\n\n`;
+        reply += `如需更详细的占卜，请告诉我3个数字进行小六壬占卜。`;
+      } else {
+        reply += `✨ 今日适合：${tip?.focus.join('、') || '保持稳定'}。\n\n`;
+        reply += `💡 ${tip?.elementHint || '保持平衡，顺应天时'}\n\n`;
+        reply += `💡 提示：如果你完善了生辰八字信息，我可以根据你的日主五行和今日万年历，为你提供更个性化的建议。\n\n`;
+        reply += `如需更详细的占卜，请告诉我3个数字进行小六壬占卜。`;
+      }
+      
+      return reply;
     }
     
     if (input.includes('避免') || input.includes('不要')) {
-      return `今日建议避免：${tip?.avoid.join('、') || '急躁行事'}。`;
+      const userBazi = getUserBaziProfile();
+      const todayElementCN = todayGanZhi?.element ? ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element : '五行';
+      const todayGanZhiStr = todayGanZhi ? `${todayGanZhi.gan}${todayGanZhi.zhi}` : '今日';
+      
+      let reply = `📅 今日万年历：${todayGanZhiStr}（${todayElementCN}日）\n\n`;
+      
+      if (userBazi && userBazi.dayStem) {
+        const userElement = getElement(userBazi.dayStem);
+        const userElementCN = userElement ? ELEMENT_MAP[userElement] || userElement : '未知';
+        reply += `👤 你的日主：${userBazi.dayStem}（${userElementCN}）\n\n`;
+        reply += `⚠️ 根据你的${userElementCN}日主和今日${todayElementCN}日，今日避免：\n`;
+        tip?.avoid.forEach((item, index) => {
+          reply += `• ${item}\n`;
+        });
+        reply += `\n💡 ${tip?.elementHint || '保持平衡，顺应天时'}\n\n`;
+        reply += `如需更详细的占卜，请告诉我3个数字进行小六壬占卜。`;
+      } else {
+        reply += `⚠️ 今日避免：${tip?.avoid.join('、') || '急躁行事'}。\n\n`;
+        reply += `💡 ${tip?.elementHint || '保持平衡，顺应天时'}\n\n`;
+        reply += `💡 提示：如果你完善了生辰八字信息，我可以根据你的日主五行和今日万年历，为你提供更个性化的建议。\n\n`;
+        reply += `如需更详细的占卜，请告诉我3个数字进行小六壬占卜。`;
+      }
+      
+      return reply;
     }
     
     // 默认回复
@@ -194,7 +239,6 @@ function ChatPage({ currentView, onNavClick }) {
     <div className="bg-slate-50 font-sans text-slate-900 relative mx-auto max-w-md" style={{ 
       width: '100%', 
       maxWidth: '428px', 
-      height: '100vh',
       height: '100dvh',
       display: 'flex', 
       flexDirection: 'column',
