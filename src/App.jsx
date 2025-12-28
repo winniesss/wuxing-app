@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import './index.css';
-import Login from './Login';
 import Quiz from './Quiz';
 import ChatPage from './components/ChatPage';
 import SettingsPage from './SettingsPage';
@@ -15,14 +14,14 @@ import { getBadgeIdByLessonId, getBadgeConfig, isBadgeUnlocked } from './utils/b
 import { getUserBaziProfile } from './utils/bazi/storage';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // 默认已登录
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [subTab, setSubTab] = useState('map'); // for learn view
 
   useEffect(() => {
-    // 检查是否已经登录
+    // 检查是否已经登录，如果没有则创建默认用户
     const savedUser = localStorage.getItem('wuxing_user');
     if (savedUser) {
       try {
@@ -31,7 +30,18 @@ function App() {
         setIsLoggedIn(true);
       } catch (e) {
         localStorage.removeItem('wuxing_user');
+        // 创建默认用户
+        const defaultUser = { username: '用户', createdAt: new Date().toISOString() };
+        localStorage.setItem('wuxing_user', JSON.stringify(defaultUser));
+        setUser(defaultUser);
+        setIsLoggedIn(true);
       }
+    } else {
+      // 如果没有保存的用户，创建默认用户
+      const defaultUser = { username: '用户', createdAt: new Date().toISOString() };
+      localStorage.setItem('wuxing_user', JSON.stringify(defaultUser));
+      setUser(defaultUser);
+      setIsLoggedIn(true);
     }
   }, []);
 
@@ -58,10 +68,7 @@ function App() {
     setActiveTab('home');
   };
 
-  // 如果未登录，显示登录页面
-  if (!isLoggedIn) {
-    return <Login onLogin={handleLogin} />;
-  }
+  // 已移除登录页面，直接显示主应用
 
   // 如果选择了课程，显示 Quiz 页面
   if (activeTab === 'quiz' && selectedLesson) {
@@ -404,6 +411,38 @@ function App() {
 
       {/* 设置菜单 */}
       <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <MenuItem 
+          icon={<FileText size={18} />} 
+          label="保存现有记录" 
+          onClick={() => {
+            try {
+              const data = {
+                progress: localStorage.getItem('wuxing_progress') || '{}',
+                user: localStorage.getItem('wuxing_user') || '{}',
+                badges: localStorage.getItem('wuxing_unlocked_badges') || '[]',
+                bazi: localStorage.getItem('husky-bazi-profile') || '{}',
+                users: localStorage.getItem('wuxing_users') || '{}',
+                exportDate: new Date().toISOString()
+              };
+              
+              const dataStr = JSON.stringify(data, null, 2);
+              const dataBlob = new Blob([dataStr], { type: 'application/json' });
+              const url = URL.createObjectURL(dataBlob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `wuxing-backup-${new Date().toISOString().split('T')[0]}.json`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+              alert('数据导出成功！');
+            } catch (e) {
+              console.error('导出失败', e);
+              alert('导出失败：' + e.message);
+            }
+          }}
+        />
+        <div className="h-px bg-slate-50" />
         <MenuItem 
           icon={<RefreshCw size={18} />} 
           label="重置进度" 

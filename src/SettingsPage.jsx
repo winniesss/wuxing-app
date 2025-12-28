@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
 import { getUserBaziProfile, saveUserBaziProfile } from './utils/bazi/storage';
 import { calculateBazi } from './utils/bazi/engine';
+import { getCurrentVersion, checkForUpdates, updateToNewVersion } from './utils/version';
 import './App.css';
 
 function SettingsPage({ currentView, onNavClick, user, onLogout }) {
   const [showBaziForm, setShowBaziForm] = useState(false);
+  const [showDataModal, setShowDataModal] = useState(false);
   const [baziProfile, setBaziProfile] = useState({
     birthday: '',
     birthTime: '12:00',
     gender: ''
   });
   const [calculatedBazi, setCalculatedBazi] = useState(null);
+  const [versionInfo, setVersionInfo] = useState(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   useEffect(() => {
     // 加载已保存的八字配置
@@ -25,7 +29,41 @@ function SettingsPage({ currentView, onNavClick, user, onLogout }) {
         setCalculatedBazi(saved);
       }
     }
+    
+    // 检查版本信息
+    checkVersionInfo();
   }, []);
+
+  // 检查版本信息
+  const checkVersionInfo = async () => {
+    const info = await checkForUpdates();
+    setVersionInfo(info);
+  };
+
+  // 手动检查更新
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const info = await checkForUpdates();
+      setVersionInfo(info);
+      if (info.hasUpdate) {
+        alert(`发现新版本 ${info.latestVersion}！当前版本：${info.currentVersion}`);
+      } else {
+        alert('当前已是最新版本');
+      }
+    } catch (error) {
+      alert('检查更新失败：' + error.message);
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  // 更新到新版本
+  const handleUpdateVersion = () => {
+    if (confirm('确定要更新到新版本吗？页面将重新加载。')) {
+      updateToNewVersion();
+    }
+  };
 
   const handleBaziSubmit = (e) => {
     e.preventDefault();
@@ -55,6 +93,65 @@ function SettingsPage({ currentView, onNavClick, user, onLogout }) {
       ...prev,
       [field]: value
     }));
+  };
+
+  // 导出所有数据
+  const handleExportData = () => {
+    try {
+      const data = {
+        progress: localStorage.getItem('wuxing_progress') || '{}',
+        user: localStorage.getItem('wuxing_user') || '{}',
+        badges: localStorage.getItem('wuxing_unlocked_badges') || '[]',
+        bazi: localStorage.getItem('husky-bazi-profile') || '{}',
+        users: localStorage.getItem('wuxing_users') || '{}',
+        exportDate: new Date().toISOString()
+      };
+      
+      const dataStr = JSON.stringify(data, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `wuxing-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      alert('数据导出成功！');
+    } catch (e) {
+      console.error('导出失败', e);
+      alert('导出失败：' + e.message);
+    }
+  };
+
+  // 导入数据
+  const handleImportData = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        
+        if (confirm('导入数据将覆盖当前所有数据，确定要继续吗？')) {
+          if (data.progress) localStorage.setItem('wuxing_progress', data.progress);
+          if (data.user) localStorage.setItem('wuxing_user', data.user);
+          if (data.badges) localStorage.setItem('wuxing_unlocked_badges', data.badges);
+          if (data.bazi) localStorage.setItem('husky-bazi-profile', data.bazi);
+          if (data.users) localStorage.setItem('wuxing_users', data.users);
+          
+          alert('数据导入成功！页面将刷新。');
+          window.location.reload();
+        }
+      } catch (e) {
+        console.error('导入失败', e);
+        alert('导入失败：文件格式不正确');
+      }
+    };
+    reader.readAsText(file);
+    // 重置input，以便可以重复选择同一文件
+    e.target.value = '';
   };
 
   return (
@@ -134,12 +231,82 @@ function SettingsPage({ currentView, onNavClick, user, onLogout }) {
         </div>
 
         <div className="settings-section">
+          <h2 className="settings-section-title">数据管理</h2>
+          
+          <div className="settings-item" onClick={handleExportData}>
+            <div className="settings-item-content">
+              <span className="settings-item-label">保存现有记录</span>
+              <span className="settings-item-desc">导出并备份学习进度和设置</span>
+            </div>
+            <div className="settings-item-action">
+              <span className="material-icons">download</span>
+            </div>
+          </div>
+
+          <div className="settings-item" onClick={() => {
+            document.getElementById('import-data-input')?.click();
+          }}>
+            <div className="settings-item-content">
+              <span className="settings-item-label">导入数据</span>
+              <span className="settings-item-desc">恢复学习进度和设置</span>
+            </div>
+            <div className="settings-item-action">
+              <span className="material-icons">upload</span>
+            </div>
+            <input
+              id="import-data-input"
+              type="file"
+              accept=".json"
+              style={{ display: 'none' }}
+              onChange={handleImportData}
+            />
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h2 className="settings-section-title">版本更新</h2>
+          
+          <div className="settings-item">
+            <div className="settings-item-content">
+              <span className="settings-item-label">当前版本</span>
+              <span className="settings-item-desc">v{getCurrentVersion()}</span>
+            </div>
+          </div>
+
+          {versionInfo && versionInfo.hasUpdate && (
+            <div className="settings-item" onClick={handleUpdateVersion} style={{ backgroundColor: '#fff3cd' }}>
+              <div className="settings-item-content">
+                <span className="settings-item-label" style={{ color: '#856404', fontWeight: 'bold' }}>
+                  发现新版本 v{versionInfo.latestVersion}
+                </span>
+                <span className="settings-item-desc">点击更新到最新版本</span>
+              </div>
+              <div className="settings-item-action">
+                <span className="material-icons" style={{ color: '#856404' }}>system_update</span>
+              </div>
+            </div>
+          )}
+
+          <div className="settings-item" onClick={handleCheckUpdate} style={{ opacity: checkingUpdate ? 0.6 : 1 }}>
+            <div className="settings-item-content">
+              <span className="settings-item-label">检查更新</span>
+              <span className="settings-item-desc">
+                {checkingUpdate ? '正在检查...' : '检查是否有新版本可用'}
+              </span>
+            </div>
+            <div className="settings-item-action">
+              <span className="material-icons">refresh</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-section">
           <h2 className="settings-section-title">关于</h2>
           
           <div className="settings-item">
             <div className="settings-item-content">
-              <span className="settings-item-label">版本信息</span>
-              <span className="settings-item-desc">v1.0.0</span>
+              <span className="settings-item-label">应用名称</span>
+              <span className="settings-item-desc">五行天干地支背诵</span>
             </div>
           </div>
 

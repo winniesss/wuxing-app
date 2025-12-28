@@ -104,30 +104,52 @@ function Login({ onLogin }) {
     }
   };
 
-  const handleWeChatLogin = () => {
-    // 微信登录逻辑
-    // 注意：实际应用中需要配置微信开放平台的AppID和回调地址
-    const WECHAT_APPID = process.env.VITE_WECHAT_APPID || '';
-    
-    if (!WECHAT_APPID) {
-      // 如果没有配置AppID，使用模拟登录
-      // 实际应用中应该跳转到微信授权页面
-      const mockWeChatUser = {
-        username: `微信用户_${Date.now()}`,
-        loginType: 'wechat',
-        createdAt: new Date().toISOString()
-      };
+  const handleWeChatLogin = async () => {
+    try {
+      setError('');
       
-      // 保存微信登录的用户信息
-      localStorage.setItem('wuxing_user', JSON.stringify(mockWeChatUser));
-      onLogin(mockWeChatUser);
-      return;
-    }
+      // 微信登录逻辑
+      // 注意：实际应用中需要配置微信开放平台的AppID和回调地址
+      const WECHAT_APPID = process.env.VITE_WECHAT_APPID || '';
+      
+      if (!WECHAT_APPID) {
+        // 如果没有配置AppID，使用模拟登录
+        // 实际应用中应该跳转到微信授权页面
+        const mockWeChatUser = {
+          username: `微信用户_${Date.now()}`,
+          loginType: 'wechat',
+          createdAt: new Date().toISOString()
+        };
+        
+        // 保存微信登录的用户信息
+        localStorage.setItem('wuxing_user', JSON.stringify(mockWeChatUser));
+        onLogin(mockWeChatUser);
+        return;
+      }
 
-    // 如果有配置AppID，跳转到微信授权页面
-    const redirectUri = encodeURIComponent(window.location.origin + '/auth/wechat');
-    const wechatAuthUrl = `https://open.weixin.qq.com/connect/qrconnect?appid=${WECHAT_APPID}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_login&state=STATE#wechat_redirect`;
-    window.location.href = wechatAuthUrl;
+      // 如果有配置AppID，跳转到微信授权页面
+      // 注意：这需要后端支持处理回调
+      if (!window.location.protocol.includes('https')) {
+        setError('微信登录需要 HTTPS 协议，当前为开发环境，使用模拟登录');
+        // 即使有AppID，在非HTTPS环境下也使用模拟登录
+        const mockWeChatUser = {
+          username: `微信用户_${Date.now()}`,
+          loginType: 'wechat',
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('wuxing_user', JSON.stringify(mockWeChatUser));
+        onLogin(mockWeChatUser);
+        return;
+      }
+
+      // 生产环境：跳转到微信授权页面
+      const redirectUri = encodeURIComponent(window.location.origin + '/auth/wechat');
+      const wechatAuthUrl = `https://open.weixin.qq.com/connect/qrconnect?appid=${WECHAT_APPID}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_login&state=STATE#wechat_redirect`;
+      window.location.href = wechatAuthUrl;
+    } catch (e) {
+      console.error('微信登录失败', e);
+      setError('微信登录失败，请稍后重试');
+    }
   };
 
   return (
@@ -150,10 +172,16 @@ function Login({ onLogin }) {
           type="button" 
           className="wechat-login-button"
           onClick={handleWeChatLogin}
+          disabled={false}
         >
           <span className="wechat-icon-text">微信</span>
           微信登录
         </button>
+        {!process.env.VITE_WECHAT_APPID && (
+          <p style={{ fontSize: '12px', color: '#666', textAlign: 'center', marginTop: '-10px', marginBottom: '10px' }}>
+            （当前为模拟登录模式）
+          </p>
+        )}
 
         <div className="login-divider">
           <span className="login-divider-line"></span>
