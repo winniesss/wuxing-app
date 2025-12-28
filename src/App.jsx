@@ -571,9 +571,9 @@ function App() {
                   handleSelectLesson(nextLesson);
                 }
               }}
-              className="flex flex-col items-center justify-center flex-1 h-full text-teal-600 touch-manipulation active:opacity-80"
+              className="flex flex-col items-center justify-center flex-1 h-full text-teal-600 touch-manipulation active:opacity-80 relative"
             >
-              <div className="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center -mt-4 shadow-lg active:scale-95 transition-transform">
+              <div className="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-lg active:scale-95 transition-transform">
                 <Play size={24} fill="white" className="text-white ml-0.5" />
               </div>
             </button>

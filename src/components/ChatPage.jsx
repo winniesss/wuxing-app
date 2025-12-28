@@ -333,8 +333,7 @@ function ChatPage({ currentView, onNavClick }) {
 
       {/* 输入框 - 固定在底部，在导航栏上方 */}
       <div className="bg-white border-t border-slate-200 px-3 py-2 flex-shrink-0 z-40" style={{ 
-        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0.5rem))',
-        marginBottom: '64px'
+        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0.5rem))'
       }}>
         <form onSubmit={handleSend} className="flex items-center gap-2 mb-1.5">
           <input
