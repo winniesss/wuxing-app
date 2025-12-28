@@ -39,7 +39,7 @@ function ChatPage({ currentView, onNavClick }) {
     
     setMessages([{
       id: 1,
-      role: 'system',
+      role: 'assistant',
       text: welcomeMessage
     }]);
     
@@ -239,7 +239,7 @@ function ChatPage({ currentView, onNavClick }) {
     <div className="bg-slate-50 font-sans text-slate-900 relative mx-auto max-w-md" style={{ 
       width: '100%', 
       maxWidth: '428px', 
-      height: '100dvh',
+      height: 'calc(100vh - 64px)',
       display: 'flex', 
       flexDirection: 'column',
       overflow: 'hidden'
@@ -300,34 +300,41 @@ function ChatPage({ currentView, onNavClick }) {
 
         {/* 聊天消息列表 */}
         <div className="px-4 pb-3 space-y-3">
-          {messages.map(msg => (
-            <div 
-              key={msg.id} 
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+          {messages.length === 0 ? (
+            <div className="text-center py-8 text-slate-400 text-sm">
+              暂无消息
+            </div>
+          ) : (
+            messages.map(msg => (
               <div 
-                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                  msg.role === 'user' 
-                    ? 'bg-teal-500 text-white' 
-                    : 'bg-white text-slate-900 border border-slate-200 shadow-sm'
-                }`}
+                key={msg.id} 
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className="text-sm leading-relaxed">
-                  {msg.text.split('\n').map((line, i) => (
-                    <p key={i} className={i > 0 ? 'mt-2' : ''}>{line}</p>
-                  ))}
+                <div 
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                    msg.role === 'user' 
+                      ? 'bg-teal-500 text-white' 
+                      : 'bg-white text-slate-900 border border-slate-200 shadow-sm'
+                  }`}
+                >
+                  <div className="text-sm leading-relaxed whitespace-pre-line">
+                    {msg.text.split('\n').map((line, i) => (
+                      <p key={i} className={i > 0 ? 'mt-2' : ''}>{line}</p>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
           <div ref={messagesEndRef} />
         </div>
         </div>
       </div>
 
-      {/* 输入框 - 固定在底部 */}
-      <div className="bg-white border-t border-slate-200 px-3 py-2 flex-shrink-0 z-50" style={{ 
-        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0.5rem))'
+      {/* 输入框 - 固定在底部，在导航栏上方 */}
+      <div className="bg-white border-t border-slate-200 px-3 py-2 flex-shrink-0 z-40" style={{ 
+        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0.5rem))',
+        marginBottom: '64px'
       }}>
         <form onSubmit={handleSend} className="flex items-center gap-2 mb-1.5">
           <input
@@ -336,7 +343,8 @@ function ChatPage({ currentView, onNavClick }) {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="输入你的问题或3个数字（1-6）..."
-            className="flex-1 px-3 py-2 bg-slate-100 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-900 placeholder-slate-400 text-sm"
+            className="flex-1 px-3 py-2 bg-slate-100 rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-900 placeholder-slate-400"
+            style={{ fontSize: '16px' }}
           />
           <button 
             type="submit" 
