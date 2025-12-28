@@ -1,11 +1,11 @@
 {
   "name": "wuxing-app",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "node scripts/inject-version.js && vite",
+    "build": "node scripts/inject-version.js && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
