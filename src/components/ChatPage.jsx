@@ -14,73 +14,161 @@ const ELEMENT_MAP = {
   water: '水'
 };
 
+// 聊天记录存储key
+const CHAT_MESSAGES_KEY = 'wuxing_chat_messages';
+const CHAT_SCROLL_KEY = 'wuxing_chat_scroll';
+
+// 加载聊天记录
+function loadChatMessages() {
+  try {
+    const saved = localStorage.getItem(CHAT_MESSAGES_KEY);
+    if (saved) {
+      const messages = JSON.parse(saved);
+      // 检查是否是今天的记录（可选：可以按日期清理）
+      return messages;
+    }
+  } catch (e) {
+    console.error('加载聊天记录失败', e);
+  }
+  return null;
+}
+
+// 保存聊天记录
+function saveChatMessages(messages) {
+  try {
+    localStorage.setItem(CHAT_MESSAGES_KEY, JSON.stringify(messages));
+  } catch (e) {
+    console.error('保存聊天记录失败', e);
+  }
+}
+
+// 保存滚动位置
+function saveScrollPosition(scrollTop) {
+  try {
+    sessionStorage.setItem(CHAT_SCROLL_KEY, scrollTop.toString());
+  } catch (e) {
+    console.error('保存滚动位置失败', e);
+  }
+}
+
+// 加载滚动位置
+function loadScrollPosition() {
+  try {
+    const saved = sessionStorage.getItem(CHAT_SCROLL_KEY);
+    if (saved) {
+      return parseInt(saved, 10);
+    }
+  } catch (e) {
+    console.error('加载滚动位置失败', e);
+  }
+  return null;
+}
+
+// 初始化欢迎消息
+function getWelcomeMessage(userBazi) {
+  return userBazi 
+    ? `你好！我是修行助手。\n\n告诉我3个数字（1-6）即可占卜，例如：1 2 3`
+    : `你好！我是修行助手。\n\n告诉我3个数字（1-6）即可占卜，例如：1 2 3\n\n完善八字信息可获得更准确的占卜。`;
+}
+
 function ChatPage({ currentView, onNavClick }) {
-  const [messages, setMessages] = useState([]);
+  // 先加载保存的消息，避免闪烁
+  const savedMessages = loadChatMessages();
+  const userBazi = getUserBaziProfile();
+  const welcomeMessage = getWelcomeMessage(userBazi);
+  
+  // 初始化消息：如果有保存的，用保存的；否则用欢迎消息
+  const initialMessages = savedMessages && savedMessages.length > 0 
+    ? savedMessages 
+    : [{
+        id: 1,
+        role: 'assistant',
+        text: welcomeMessage
+      }];
+  
+  const [messages, setMessages] = useState(initialMessages);
   const [inputText, setInputText] = useState('');
   const [dailyTip, setDailyTip] = useState(null);
   const [todayGanZhi, setTodayGanZhi] = useState(null);
   const messagesEndRef = useRef(null);
   const contentRef = useRef(null);
   const inputRef = useRef(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // 记录上一次消息数量，用于判断是否有新消息
+  const prevMessagesLengthRef = useRef(initialMessages.length);
+  // 记录是否正在恢复消息（避免恢复时滚动）
+  const isRestoringRef = useRef(savedMessages && savedMessages.length > 0);
 
   useEffect(() => {
     // 加载每日修行提醒
-    const userBazi = getUserBaziProfile();
     const tip = generateDailyTip(new Date(), userBazi);
     const ganZhi = getTodayGanZhi();
     
     setDailyTip(tip);
     setTodayGanZhi(ganZhi);
     
-    // 初始化欢迎消息
-    const welcomeMessage = userBazi 
-      ? `你好！我是修行助手。\n\n告诉我3个数字（1-6）即可占卜，例如：1 2 3`
-      : `你好！我是修行助手。\n\n告诉我3个数字（1-6）即可占卜，例如：1 2 3\n\n完善八字信息可获得更准确的占卜。`;
+    // 如果没有保存的记录，保存初始消息
+    if (!savedMessages || savedMessages.length === 0) {
+      saveChatMessages(initialMessages);
+    }
     
-    setMessages([{
-      id: 1,
-      role: 'assistant',
-      text: welcomeMessage
-    }]);
+    setIsInitialized(true);
     
-    // 确保页面滚动到顶部，显示提示卡
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
+    // 恢复滚动位置
+    if (isRestoringRef.current) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const savedScrollTop = loadScrollPosition();
+          if (savedScrollTop !== null && contentRef.current) {
+            contentRef.current.scrollTop = savedScrollTop;
+            isRestoringRef.current = false;
+          } else {
+            isRestoringRef.current = false;
+          }
+        });
+      });
+    }
   }, []);
 
 
-  // 自动滚动到底部（只在有新消息时滚动，初始加载时不滚动）
+  // 自动滚动到底部（只在发送新消息时滚动，恢复记录时不滚动）
   useEffect(() => {
-    // 如果消息数量大于1（即有新消息），才滚动到底部
-    if (messages.length > 1) {
+    // 如果正在恢复消息，不滚动
+    if (isRestoringRef.current) {
+      return;
+    }
+    
+    // 只在初始化完成后，且消息数量增加时（说明是新消息）才滚动
+    if (isInitialized && messages.length > prevMessagesLengthRef.current) {
+      // 有新消息，滚动到底部
       scrollToBottom();
     }
-  }, [messages]);
+    // 更新消息数量记录
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages, isInitialized]);
 
-  // 处理输入框聚焦时的布局
+  // 保存聊天记录到localStorage
   useEffect(() => {
-    const handleFocus = () => {
-      // 延迟滚动，确保键盘已弹出
-      setTimeout(() => {
-        scrollToBottom();
-      }, 300);
-    };
+    // 只在初始化完成后保存，避免初始化时覆盖
+    if (isInitialized && messages.length > 0) {
+      saveChatMessages(messages);
+    }
+  }, [messages, isInitialized]);
 
-    const handleBlur = () => {
-      // 输入框失焦时，确保页面回到正常状态
-      if (contentRef.current) {
-        contentRef.current.scrollTop = contentRef.current.scrollHeight;
+  // 保存滚动位置
+  useEffect(() => {
+    const handleScroll = () => {
+      if (contentRef.current && !isRestoringRef.current) {
+        saveScrollPosition(contentRef.current.scrollTop);
       }
     };
 
-    const input = inputRef.current;
-    if (input) {
-      input.addEventListener('focus', handleFocus);
-      input.addEventListener('blur', handleBlur);
+    const content = contentRef.current;
+    if (content) {
+      content.addEventListener('scroll', handleScroll, { passive: true });
       return () => {
-        input.removeEventListener('focus', handleFocus);
-        input.removeEventListener('blur', handleBlur);
+        content.removeEventListener('scroll', handleScroll);
       };
     }
   }, []);
