@@ -28,14 +28,14 @@ const ELEMENT_TIPS = {
   metal: {
     title: '金日宜精进 ⚔️',
     summary: '金主锐利，今日适合决断、整理、提升。',
-    focus: ['做重要决定', '整理物品', '锻炼身体', '提升技能', '断舍离'],
+    focus: ['做重要决定', '整理物品', '锻炼身体', '提升自我', '断舍离'],
     avoid: ['优柔寡断', '浅尝辄止', '分散注意力', '过度纠结'],
     elementHint: '金主锐利，今日宜精不宜粗，宜断不宜拖'
   },
   water: {
     title: '水日宜流动 💧',
-    summary: '水主流动，今日适合适应、变通、学习。',
-    focus: ['灵活应对', '学习新事物', '调整计划', '与人合作', '保持开放'],
+    summary: '水主流动，今日适合适应、变通、交流。',
+    focus: ['灵活应对', '尝试新体验', '调整计划', '与人合作', '保持开放'],
     avoid: ['固执己见', '一成不变', '封闭自己', '拒绝变化'],
     elementHint: '水主流动，今日宜变不宜固，宜通不宜堵'
   }
@@ -46,28 +46,53 @@ export function generateDailyTip(date, userBaziProfile) {
   const today = date || new Date();
   const dateStr = today.toISOString().split('T')[0];
   
-  // 如果没有用户八字，使用今日日柱的五行
+  // 优先使用用户日主的五行，如果没有用户八字，使用今日日柱的五行
   let element = 'wood'; // 默认
+  let dayStem = null;
+  let isUserBazi = false;
   
   if (userBaziProfile && userBaziProfile.dayStem) {
-    // 使用用户日干的五行
-    element = getElement(userBaziProfile.dayStem) || 'wood';
+    // 使用用户日主的五行
+    dayStem = userBaziProfile.dayStem;
+    element = getElement(dayStem) || 'wood';
+    isUserBazi = true;
   } else {
     // 计算今日日柱
     const todayBazi = calculateBazi(dateStr, '12:00');
-    element = getElement(todayBazi.dayStem) || 'wood';
+    dayStem = todayBazi.dayStem;
+    element = getElement(dayStem) || 'wood';
   }
   
   const tip = ELEMENT_TIPS[element] || ELEMENT_TIPS.wood;
   
+  // 根据是否使用用户八字，调整标题和summary
+  let title = tip.title;
+  let summary = tip.summary;
+  
+  if (isUserBazi) {
+    // 基于用户日主个性化标题
+    const elementCN = {
+      wood: '木',
+      fire: '火',
+      earth: '土',
+      metal: '金',
+      water: '水'
+    }[element] || '木';
+    
+    title = `你的${elementCN}日主建议 🌟`;
+    summary = `根据你的日主${dayStem}（${elementCN}），今日适合：`;
+  }
+  
   return {
     date: dateStr,
-    title: tip.title,
-    summary: tip.summary,
+    title: title,
+    summary: summary,
     focus: tip.focus,
     avoid: tip.avoid,
     elementHint: tip.elementHint,
-    element: element
+    element: element,
+    dayStem: dayStem,
+    isUserBazi: isUserBazi
   };
 }
 

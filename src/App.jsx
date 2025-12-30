@@ -13,6 +13,7 @@ import { lessons } from './data';
 import { getLessonProgress, getOverallProgress, isLessonUnlocked } from './utils/progress';
 import { getBadgeIdByLessonId, getBadgeConfig, isBadgeUnlocked } from './utils/badges';
 import { getUserBaziProfile } from './utils/bazi/storage';
+import { getElement } from './utils/bazi/engine';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(true); // 默认已登录
@@ -379,7 +380,17 @@ function App() {
   };
 
   // 个人中心组件
-  const ProfileView = () => (
+  const ProfileView = () => {
+    const userBazi = getUserBaziProfile();
+    const ELEMENT_MAP = {
+      wood: '木',
+      fire: '火',
+      earth: '土',
+      metal: '金',
+      water: '水'
+    };
+    
+    return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* 头部卡片 */}
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center relative overflow-hidden">
@@ -392,6 +403,81 @@ function App() {
         {/* 装饰背景 */}
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-slate-50 to-transparent -z-0" />
       </div>
+
+      {/* 四柱显示 */}
+      {userBazi && userBazi.dayStem ? (
+        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+          <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <Calendar size={18} className="text-teal-600" />
+            <span>我的四柱</span>
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {/* 年柱 */}
+            {userBazi.yearStem && userBazi.yearBranch && (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 border border-blue-100">
+                <div className="text-xs text-slate-500 mb-1">年柱</div>
+                <div className="text-lg font-bold text-slate-900">
+                  {userBazi.yearStem}{userBazi.yearBranch}
+                </div>
+                <div className="text-xs text-slate-600 mt-1">
+                  {getElement(userBazi.yearStem) ? ELEMENT_MAP[getElement(userBazi.yearStem)] : ''}
+                </div>
+              </div>
+            )}
+            {/* 月柱 */}
+            {userBazi.monthStem && userBazi.monthBranch && (
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 border border-purple-100">
+                <div className="text-xs text-slate-500 mb-1">月柱</div>
+                <div className="text-lg font-bold text-slate-900">
+                  {userBazi.monthStem}{userBazi.monthBranch}
+                </div>
+                <div className="text-xs text-slate-600 mt-1">
+                  {getElement(userBazi.monthStem) ? ELEMENT_MAP[getElement(userBazi.monthStem)] : ''}
+                </div>
+              </div>
+            )}
+            {/* 日柱 */}
+            {userBazi.dayStem && userBazi.dayBranch && (
+              <div className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-3 border border-teal-100">
+                <div className="text-xs text-slate-500 mb-1">日柱（日主）</div>
+                <div className="text-lg font-bold text-slate-900">
+                  {userBazi.dayStem}{userBazi.dayBranch}
+                </div>
+                <div className="text-xs text-slate-600 mt-1">
+                  {getElement(userBazi.dayStem) ? ELEMENT_MAP[getElement(userBazi.dayStem)] : ''} 日主
+                </div>
+              </div>
+            )}
+            {/* 时柱 */}
+            {userBazi.hourStem && userBazi.hourBranch && (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-3 border border-amber-100">
+                <div className="text-xs text-slate-500 mb-1">时柱</div>
+                <div className="text-lg font-bold text-slate-900">
+                  {userBazi.hourStem}{userBazi.hourBranch}
+                </div>
+                <div className="text-xs text-slate-600 mt-1">
+                  {getElement(userBazi.hourStem) ? ELEMENT_MAP[getElement(userBazi.hourStem)] : ''}
+                </div>
+              </div>
+            )}
+          </div>
+          {userBazi.birthday && (
+            <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
+              生辰：{userBazi.birthday} {userBazi.birthTime || ''}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm text-center">
+          <div className="text-slate-400 text-sm mb-2">📅 尚未设置生辰八字</div>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className="text-teal-600 text-sm font-medium"
+          >
+            前往设置完善信息 →
+          </button>
+        </div>
+      )}
 
       {/* 统计数据 */}
       <div className="grid grid-cols-2 gap-4">
@@ -478,7 +564,8 @@ function App() {
         />
       </div>
     </div>
-  );
+    );
+  };
 
   const MenuItem = ({ icon, label, danger, onClick }) => (
     <button 
@@ -536,7 +623,7 @@ function App() {
 
         {/* --- 底部导航栏（移动端模式）--- */}
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 mx-auto max-w-md shadow-lg" style={{ maxWidth: '428px' }}>
-          <div className="flex justify-around items-center h-16">
+          <div className="flex items-center h-16" style={{ justifyContent: 'space-around' }}>
             <button 
               onClick={() => {
                 setActiveTab('home');
@@ -571,9 +658,9 @@ function App() {
                   handleSelectLesson(nextLesson);
                 }
               }}
-              className="flex flex-col items-center justify-center flex-1 h-full text-teal-600 touch-manipulation active:opacity-80 relative"
+              className="flex items-center justify-center h-full text-teal-600 touch-manipulation active:opacity-80 relative flex-1"
             >
-              <div className="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-lg active:scale-95 transition-transform">
+              <div className="w-12 h-12 bg-teal-500 rounded-full flex items-center justify-center -mt-6 shadow-lg active:scale-95 transition-transform">
                 <Play size={24} fill="white" className="text-white ml-0.5" />
               </div>
             </button>

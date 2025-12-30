@@ -34,8 +34,8 @@ function ChatPage({ currentView, onNavClick }) {
     
     // 初始化欢迎消息
     const welcomeMessage = userBazi 
-      ? `你好呀！我是修行路上的伙伴，擅长五行之道。\n\n我可以根据你的生辰八字为你进行小六壬占卜，帮你解答疑惑。\n\n只需要告诉我3个数字（1-6之间）就可以开始占卜啦～\n\n例如：1 2 3 或 一二三`
-      : `你好呀！我是修行路上的伙伴，擅长五行之道。\n\n我可以为你进行小六壬占卜，帮你解答疑惑。\n\n如果你先完善一下生辰八字信息，占卜会更准确哦～\n\n然后告诉我3个数字（1-6之间）就可以开始占卜啦！\n\n例如：1 2 3 或 一二三`;
+      ? `你好！我是修行助手。\n\n告诉我3个数字（1-6）即可占卜，例如：1 2 3`
+      : `你好！我是修行助手。\n\n告诉我3个数字（1-6）即可占卜，例如：1 2 3\n\n完善八字信息可获得更准确的占卜。`;
     
     setMessages([{
       id: 1,
@@ -155,25 +155,30 @@ function ChatPage({ currentView, onNavClick }) {
     
     // 检查是否询问小六壬
     if (input.includes('小六壬') || input.includes('占卜') || input.includes('算卦')) {
-      return '小六壬占卜需要3个数字（1-6之间）。\n\n请告诉我3个数字，例如：\n- 1 2 3\n- 一二三\n- 3,5,6\n\n我将根据你的生辰八字为你进行占卜。';
+      return '告诉我3个数字（1-6），例如：1 2 3';
     }
     
     // 检查是否询问八字
-    if (input.includes('八字') || input.includes('生辰')) {
-      if (userBazi) {
+    if (input.includes('八字') || input.includes('生辰') || input.includes('四柱')) {
+      if (userBazi && userBazi.yearStem && userBazi.monthStem && userBazi.dayStem && userBazi.hourStem) {
+        // 显示完整的四柱八字
         const dayStem = userBazi.dayStem || '未知';
         const element = userBazi.dayStem ? getElement(userBazi.dayStem) : null;
         const elementCN = element ? ELEMENT_MAP[element] || element : '未知';
-        return `你的生辰八字信息：\n日主：${dayStem}\n五行：${elementCN}\n\n如需进行小六壬占卜，请告诉我3个数字（1-6之间）。`;
+        
+        let reply = `📋 你的八字：\n`;
+        reply += `${userBazi.yearStem}${userBazi.yearBranch} ${userBazi.monthStem}${userBazi.monthBranch} ${userBazi.dayStem}${userBazi.dayBranch} ${userBazi.hourStem}${userBazi.hourBranch}\n\n`;
+        reply += `日主：${userBazi.dayStem}（${elementCN}）`;
+        return reply;
       } else {
-        return '你还没有设置生辰八字信息。请前往个人中心完善信息，然后我可以根据你的八字为你进行更准确的占卜。';
+        return '请前往"我的" → "设置" → "生辰八字"完善信息。';
       }
     }
     
     // 检查是否询问今日五行
     if (input.includes('今日') && (input.includes('五行') || input.includes('天干'))) {
       const elementCN = todayGanZhi?.element ? ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element : '木';
-      return `今日天干地支：${todayGanZhi?.gan}${todayGanZhi?.zhi}\n五行属性：${elementCN}\n\n如需占卜，请告诉我3个数字（1-6之间）。`;
+      return `今日：${todayGanZhi?.gan}${todayGanZhi?.zhi}（${elementCN}）`;
     }
     
     // 检查是否询问建议
@@ -182,23 +187,16 @@ function ChatPage({ currentView, onNavClick }) {
       const todayElementCN = todayGanZhi?.element ? ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element : '五行';
       const todayGanZhiStr = todayGanZhi ? `${todayGanZhi.gan}${todayGanZhi.zhi}` : '今日';
       
-      let reply = `📅 今日万年历：${todayGanZhiStr}（${todayElementCN}日）\n\n`;
+      let reply = `📅 今日：${todayGanZhiStr}（${todayElementCN}）\n\n`;
       
       if (userBazi && userBazi.dayStem) {
         const userElement = getElement(userBazi.dayStem);
         const userElementCN = userElement ? ELEMENT_MAP[userElement] || userElement : '未知';
-        reply += `👤 你的日主：${userBazi.dayStem}（${userElementCN}）\n\n`;
-        reply += `✨ 根据你的${userElementCN}日主和今日${todayElementCN}日，今日适合：\n`;
-        tip?.focus.forEach((item, index) => {
-          reply += `• ${item}\n`;
-        });
-        reply += `\n💡 ${tip?.elementHint || '保持平衡，顺应天时'}\n\n`;
-        reply += `如需更详细的占卜，请告诉我3个数字进行小六壬占卜。`;
+        reply += `✨ 适合：${tip?.focus.join('、') || '保持稳定'}\n`;
+        reply += `⚠️ 避免：${tip?.avoid.join('、') || '急躁行事'}`;
       } else {
-        reply += `✨ 今日适合：${tip?.focus.join('、') || '保持稳定'}。\n\n`;
-        reply += `💡 ${tip?.elementHint || '保持平衡，顺应天时'}\n\n`;
-        reply += `💡 提示：如果你完善了生辰八字信息，我可以根据你的日主五行和今日万年历，为你提供更个性化的建议。\n\n`;
-        reply += `如需更详细的占卜，请告诉我3个数字进行小六壬占卜。`;
+        reply += `✨ 适合：${tip?.focus.join('、') || '保持稳定'}\n`;
+        reply += `⚠️ 避免：${tip?.avoid.join('、') || '急躁行事'}`;
       }
       
       return reply;
@@ -209,30 +207,21 @@ function ChatPage({ currentView, onNavClick }) {
       const todayElementCN = todayGanZhi?.element ? ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element : '五行';
       const todayGanZhiStr = todayGanZhi ? `${todayGanZhi.gan}${todayGanZhi.zhi}` : '今日';
       
-      let reply = `📅 今日万年历：${todayGanZhiStr}（${todayElementCN}日）\n\n`;
+      let reply = `📅 今日：${todayGanZhiStr}（${todayElementCN}）\n\n`;
       
       if (userBazi && userBazi.dayStem) {
         const userElement = getElement(userBazi.dayStem);
         const userElementCN = userElement ? ELEMENT_MAP[userElement] || userElement : '未知';
-        reply += `👤 你的日主：${userBazi.dayStem}（${userElementCN}）\n\n`;
-        reply += `⚠️ 根据你的${userElementCN}日主和今日${todayElementCN}日，今日避免：\n`;
-        tip?.avoid.forEach((item, index) => {
-          reply += `• ${item}\n`;
-        });
-        reply += `\n💡 ${tip?.elementHint || '保持平衡，顺应天时'}\n\n`;
-        reply += `如需更详细的占卜，请告诉我3个数字进行小六壬占卜。`;
+        reply += `⚠️ 避免：${tip?.avoid.join('、') || '急躁行事'}`;
       } else {
-        reply += `⚠️ 今日避免：${tip?.avoid.join('、') || '急躁行事'}。\n\n`;
-        reply += `💡 ${tip?.elementHint || '保持平衡，顺应天时'}\n\n`;
-        reply += `💡 提示：如果你完善了生辰八字信息，我可以根据你的日主五行和今日万年历，为你提供更个性化的建议。\n\n`;
-        reply += `如需更详细的占卜，请告诉我3个数字进行小六壬占卜。`;
+        reply += `⚠️ 避免：${tip?.avoid.join('、') || '急躁行事'}`;
       }
       
       return reply;
     }
     
     // 默认回复
-    return '我是精通五行的道士，可以为你进行小六壬占卜。\n\n请告诉我3个数字（1-6之间），例如：1 2 3\n\n或者你可以问我关于八字、五行、今日运势等问题。';
+    return '告诉我3个数字（1-6）可占卜，或询问八字、今日运势等。';
   };
 
   return (
@@ -267,36 +256,54 @@ function ChatPage({ currentView, onNavClick }) {
           }
         `}</style>
         <div>
-        {/* 今日修行提醒卡片 */}
-        {dailyTip && (
-          <div className="px-4 pt-3 pb-2">
-            <div className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-4 border border-teal-100 shadow-sm">
-              <div className="flex items-start gap-2 mb-2">
-                <span className="text-xl">🌱</span>
-                <div className="flex-1">
-                  <h3 className="text-base font-bold text-slate-900 mb-0.5">{dailyTip.title}</h3>
-                  <p className="text-xs text-slate-600">{dailyTip.summary}</p>
-                </div>
-              </div>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-start gap-2">
-                  <span className="text-teal-600 font-medium min-w-[70px] text-xs" style={{ color: '#0d9488' }}>✨ 今日适合：</span>
-                  <span className="text-slate-700 text-xs" style={{ color: '#334155' }}>{dailyTip.focus.join('、')}</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-amber-600 font-medium min-w-[70px] text-xs" style={{ color: '#d97706' }}>⚠️ 今日避免：</span>
-                  <span className="text-slate-700 text-xs" style={{ color: '#334155' }}>{dailyTip.avoid.join('、')}</span>
-                </div>
-                {todayGanZhi && (
-                  <div className="flex items-start gap-2 pt-1.5 border-t border-teal-200">
-                    <span className="text-slate-600 font-medium min-w-[70px] text-xs" style={{ color: '#475569' }}>📅 今日：</span>
-                    <span className="text-slate-700 text-xs" style={{ color: '#334155', fontWeight: '600' }}>{todayGanZhi.gan}{todayGanZhi.zhi} ({ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element})</span>
+        {/* 基于用户四柱的建议卡片 */}
+        {dailyTip && (() => {
+          const userBazi = getUserBaziProfile();
+          const userElement = userBazi && userBazi.dayStem ? getElement(userBazi.dayStem) : null;
+          const userElementCN = userElement ? ELEMENT_MAP[userElement] || userElement : null;
+          
+          return (
+            <div className="px-4 pt-3 pb-2">
+              <div className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-4 border border-teal-100 shadow-sm">
+                <div className="flex items-start gap-2 mb-2">
+                  <span className="text-xl">🌟</span>
+                  <div className="flex-1">
+                    <h3 className="text-base font-bold text-slate-900 mb-0.5">{dailyTip.title}</h3>
+                    <p className="text-xs text-slate-600">{dailyTip.summary}</p>
                   </div>
-                )}
+                </div>
+                <div className="space-y-2 text-xs">
+                  {/* 今日适合和今日避免并排显示 */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-teal-600 font-semibold text-xs mb-1.5 flex items-center gap-1" style={{ color: '#0d9488' }}>
+                        <span>✨</span>
+                        <span>今日适合</span>
+                      </div>
+                      <div className="text-slate-700 text-xs leading-relaxed" style={{ color: '#334155' }}>{dailyTip.focus.join('、')}</div>
+                    </div>
+                    <div>
+                      <div className="text-amber-600 font-semibold text-xs mb-1.5 flex items-center gap-1" style={{ color: '#d97706' }}>
+                        <span>⚠️</span>
+                        <span>今日避免</span>
+                      </div>
+                      <div className="text-slate-700 text-xs leading-relaxed" style={{ color: '#334155' }}>{dailyTip.avoid.join('、')}</div>
+                    </div>
+                  </div>
+                  {/* 只显示今日万年历 */}
+                  <div className="pt-2 border-t border-teal-200">
+                    {todayGanZhi && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-600 font-medium text-xs shrink-0" style={{ color: '#475569' }}>📅 今日：</span>
+                        <span className="text-slate-700 text-xs font-semibold" style={{ color: '#334155' }}>{todayGanZhi.gan}{todayGanZhi.zhi} ({ELEMENT_MAP[todayGanZhi.element] || todayGanZhi.element})</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* 聊天消息列表 */}
         <div className="px-4 pb-3 space-y-3">

@@ -4,13 +4,28 @@ import { calculateBazi } from './utils/bazi/engine';
 import { getCurrentVersion, checkForUpdates, updateToNewVersion } from './utils/version';
 import './App.css';
 
+// 天干地支选项
+const TIAN_GAN_OPTIONS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+const DI_ZHI_OPTIONS = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+
 function SettingsPage({ currentView, onNavClick, user, onLogout }) {
   const [showBaziForm, setShowBaziForm] = useState(false);
+  const [showManualEdit, setShowManualEdit] = useState(false);
   const [showDataModal, setShowDataModal] = useState(false);
   const [baziProfile, setBaziProfile] = useState({
     birthday: '',
     birthTime: '12:00',
     gender: ''
+  });
+  const [manualBazi, setManualBazi] = useState({
+    yearStem: '',
+    yearBranch: '',
+    monthStem: '',
+    monthBranch: '',
+    dayStem: '',
+    dayBranch: '',
+    hourStem: '',
+    hourBranch: ''
   });
   const [calculatedBazi, setCalculatedBazi] = useState(null);
   const [versionInfo, setVersionInfo] = useState(null);
@@ -27,6 +42,19 @@ function SettingsPage({ currentView, onNavClick, user, onLogout }) {
       });
       if (saved.dayStem) {
         setCalculatedBazi(saved);
+        // 如果是手动编辑的，也加载到手动编辑表单
+        if (saved.manualEdit) {
+          setManualBazi({
+            yearStem: saved.yearStem || '',
+            yearBranch: saved.yearBranch || '',
+            monthStem: saved.monthStem || '',
+            monthBranch: saved.monthBranch || '',
+            dayStem: saved.dayStem || '',
+            dayBranch: saved.dayBranch || '',
+            hourStem: saved.hourStem || '',
+            hourBranch: saved.hourBranch || ''
+          });
+        }
       }
     }
     
@@ -90,6 +118,54 @@ function SettingsPage({ currentView, onNavClick, user, onLogout }) {
 
   const handleBaziChange = (field, value) => {
     setBaziProfile(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // 手动编辑八字
+  const handleManualBaziSubmit = (e) => {
+    e.preventDefault();
+    
+    // 验证所有字段都已填写
+    const requiredFields = ['yearStem', 'yearBranch', 'monthStem', 'monthBranch', 'dayStem', 'dayBranch', 'hourStem', 'hourBranch'];
+    const missingFields = requiredFields.filter(field => !manualBazi[field]);
+    
+    if (missingFields.length > 0) {
+      alert('请填写完整的八字信息');
+      return;
+    }
+
+    // 验证天干地支是否有效
+    const TIAN_GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const DI_ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    
+    const isValidGan = (gan) => TIAN_GAN.includes(gan);
+    const isValidZhi = (zhi) => DI_ZHI.includes(zhi);
+    
+    if (!isValidGan(manualBazi.yearStem) || !isValidZhi(manualBazi.yearBranch) ||
+        !isValidGan(manualBazi.monthStem) || !isValidZhi(manualBazi.monthBranch) ||
+        !isValidGan(manualBazi.dayStem) || !isValidZhi(manualBazi.dayBranch) ||
+        !isValidGan(manualBazi.hourStem) || !isValidZhi(manualBazi.hourBranch)) {
+      alert('请输入有效的天干地支（天干：甲乙丙丁戊己庚辛壬癸，地支：子丑寅卯辰巳午未申酉戌亥）');
+      return;
+    }
+
+    // 保存手动输入的八字
+    const fullProfile = {
+      ...baziProfile,
+      ...manualBazi,
+      manualEdit: true // 标记为手动编辑
+    };
+
+    saveUserBaziProfile(fullProfile);
+    setCalculatedBazi(fullProfile);
+    setShowManualEdit(false);
+    alert('八字已保存');
+  };
+
+  const handleManualBaziChange = (field, value) => {
+    setManualBazi(prev => ({
       ...prev,
       [field]: value
     }));
@@ -210,7 +286,18 @@ function SettingsPage({ currentView, onNavClick, user, onLogout }) {
               
               <div className="settings-item" onClick={() => setShowBaziForm(true)}>
                 <div className="settings-item-content">
-                  <span className="settings-item-label">修改八字</span>
+                  <span className="settings-item-label">通过生日修改</span>
+                  <span className="settings-item-desc">输入生日和时间自动计算</span>
+                </div>
+                <div className="settings-item-action">
+                  <span className="material-icons">chevron_right</span>
+                </div>
+              </div>
+              
+              <div className="settings-item" onClick={() => setShowManualEdit(true)}>
+                <div className="settings-item-content">
+                  <span className="settings-item-label">手动编辑八字</span>
+                  <span className="settings-item-desc">直接输入天干地支</span>
                 </div>
                 <div className="settings-item-action">
                   <span className="material-icons">chevron_right</span>
@@ -320,6 +407,145 @@ function SettingsPage({ currentView, onNavClick, user, onLogout }) {
           </div>
         </div>
       </div>
+
+      {/* 手动编辑八字弹窗 */}
+      {showManualEdit && (
+        <div className="modal-overlay" onClick={() => setShowManualEdit(false)}>
+          <div className="modal-content bazi-form-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>手动编辑八字</h2>
+              <button className="modal-close" onClick={() => setShowManualEdit(false)}>
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleManualBaziSubmit} className="bazi-form">
+                <div className="form-group">
+                  <label>年柱</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <select
+                      value={manualBazi.yearStem}
+                      onChange={(e) => handleManualBaziChange('yearStem', e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    >
+                      <option value="">选择天干</option>
+                      {TIAN_GAN_OPTIONS.map(gan => (
+                        <option key={gan} value={gan}>{gan}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={manualBazi.yearBranch}
+                      onChange={(e) => handleManualBaziChange('yearBranch', e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    >
+                      <option value="">选择地支</option>
+                      {DI_ZHI_OPTIONS.map(zhi => (
+                        <option key={zhi} value={zhi}>{zhi}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>月柱</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <select
+                      value={manualBazi.monthStem}
+                      onChange={(e) => handleManualBaziChange('monthStem', e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    >
+                      <option value="">选择天干</option>
+                      {TIAN_GAN_OPTIONS.map(gan => (
+                        <option key={gan} value={gan}>{gan}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={manualBazi.monthBranch}
+                      onChange={(e) => handleManualBaziChange('monthBranch', e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    >
+                      <option value="">选择地支</option>
+                      {DI_ZHI_OPTIONS.map(zhi => (
+                        <option key={zhi} value={zhi}>{zhi}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>日柱</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <select
+                      value={manualBazi.dayStem}
+                      onChange={(e) => handleManualBaziChange('dayStem', e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    >
+                      <option value="">选择天干</option>
+                      {TIAN_GAN_OPTIONS.map(gan => (
+                        <option key={gan} value={gan}>{gan}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={manualBazi.dayBranch}
+                      onChange={(e) => handleManualBaziChange('dayBranch', e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    >
+                      <option value="">选择地支</option>
+                      {DI_ZHI_OPTIONS.map(zhi => (
+                        <option key={zhi} value={zhi}>{zhi}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label>时柱</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <select
+                      value={manualBazi.hourStem}
+                      onChange={(e) => handleManualBaziChange('hourStem', e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    >
+                      <option value="">选择天干</option>
+                      {TIAN_GAN_OPTIONS.map(gan => (
+                        <option key={gan} value={gan}>{gan}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={manualBazi.hourBranch}
+                      onChange={(e) => handleManualBaziChange('hourBranch', e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1 }}
+                    >
+                      <option value="">选择地支</option>
+                      {DI_ZHI_OPTIONS.map(zhi => (
+                        <option key={zhi} value={zhi}>{zhi}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div style={{ fontSize: '12px', color: '#666', marginBottom: '15px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+                  <p style={{ margin: '4px 0' }}><strong>示例：</strong>癸酉　丙辰　甲申　己巳</p>
+                  <p style={{ margin: '4px 0' }}>天干：{TIAN_GAN_OPTIONS.join('、')}</p>
+                  <p style={{ margin: '4px 0' }}>地支：{DI_ZHI_OPTIONS.join('、')}</p>
+                </div>
+                
+                <button type="submit" className="form-submit-btn">
+                  保存八字
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 八字设置弹窗 */}
       {showBaziForm && (
